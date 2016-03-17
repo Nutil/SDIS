@@ -1,3 +1,5 @@
+import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
+
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
@@ -53,6 +55,9 @@ public class Peer {
         this.mdrAddress = mdrAddress;
     }
 
+    /**
+     * Open all sockets and have them join their respective multicast groups
+     */
     private void joinMulticastGroups() {
         //open sockets
         try {
@@ -75,9 +80,21 @@ public class Peer {
         System.out.println("Succesfully joined groups");
     }
 
+    /**
+     * Start all channel handlers. They take care of receiving and processing packets on each channel
+     */
     public void startHandlers(){
-        MCHandler mcChannelHandler = new MCHandler(MC, mcAddress, mcPort);
+        CommandHandler singletonHandler = CommandHandler.getInstance();
+        singletonHandler.start();
+
+        PackageHandler mcChannelHandler = new PackageHandler(MC, mcAddress, mcPort, "MC");
         mcChannelHandler.start();
+
+        PackageHandler mdbChannelHandler = new PackageHandler(MDB, mdbAddress, mdbPort, "MDB");
+        mdbChannelHandler.start();
+
+        PackageHandler mdrChannelHandler = new PackageHandler(MDR, mdrAddress, mdrPort, "MDR");
+        mdrChannelHandler.start();
     }
 
     public MulticastSocket getMC() {
@@ -93,12 +110,12 @@ public class Peer {
     }
 
     public void sendMCRequest(){
-        String message = "My Request";
+        String message = "STORED 1.0";
         DatagramPacket requestPacket = new DatagramPacket(message.getBytes(), message.getBytes().length, mcAddress, mcPort);
         try {
             System.out.println("Sending request package");
             MC.send(requestPacket);
-            System.out.println("Package successfulyl sent");
+            System.out.println("Package successfully sent");
         } catch (IOException e) {
             e.printStackTrace();
         }
