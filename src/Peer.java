@@ -19,7 +19,7 @@ public class Peer {
     private MulticastSocket MDB;
     private MulticastSocket MDR;
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         int mcPort = 9000;
         int mdbPort = 9001;
         int mdrPort = 9002;
@@ -38,6 +38,10 @@ public class Peer {
 
         testPeer.joinMulticastGroups();
 
+        testPeer.startHandlers();
+
+        //Test handler
+        testPeer.sendMCRequest();
 
     }
     public Peer(int mcPort, int mdbPort,int mdrPort, InetAddress mcAddress, InetAddress mdbAddress, InetAddress mdrAddress){
@@ -69,6 +73,35 @@ public class Peer {
         }
 
         System.out.println("Succesfully joined groups");
+    }
+
+    public void startHandlers(){
+        MCHandler mcChannelHandler = new MCHandler(MC, mcAddress, mcPort);
+        mcChannelHandler.start();
+    }
+
+    public MulticastSocket getMC() {
+        return MC;
+    }
+
+    public MulticastSocket getMDB() {
+        return MDB;
+    }
+
+    public MulticastSocket getMDR() {
+        return MDR;
+    }
+
+    public void sendMCRequest(){
+        String message = "My Request";
+        DatagramPacket requestPacket = new DatagramPacket(message.getBytes(), message.getBytes().length, mcAddress, mcPort);
+        try {
+            System.out.println("Sending request package");
+            MC.send(requestPacket);
+            System.out.println("Package successfulyl sent");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
