@@ -32,10 +32,8 @@ public class CommandHandler extends Thread {
 
     public void run(){
         while(true){
-            System.out.println("Checking queued commands...");
             //Sleep thread if no commands to be handled
             if(commands.size() == 0){
-                System.out.println("No commands found. Sleeping...");
                 try {
                     Thread.sleep(50);
                     continue;
@@ -84,8 +82,12 @@ public class CommandHandler extends Thread {
                 }
                 break;
             case "STORED":
+                int actualRepDeg = 0;
                 ReplicationInfo repInfo = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
-                FileInfo.getInstance().addInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),repInfo.getActualRepDegree() +1, repInfo.getDesiredRepDegree());
+                if(repInfo != null){
+                    actualRepDeg = repInfo.getActualRepDegree();
+                }
+                FileInfo.getInstance().addInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),actualRepDeg +1,msg.getHeader().getReplicationDegree());
                 break;
             default:
                 System.out.println("Unrecognized command. Disregarding");

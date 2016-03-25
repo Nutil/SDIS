@@ -32,7 +32,7 @@ public class PackageHandler extends Thread {
                 System.out.println("Awaiting packets on " + name);
                 mcSocket.receive(receptionPacket);
                 System.out.println("Received a packet on " + name + ". Calling command handler");
-                commandHandler.addCommand(receptionPacket.getData());
+                commandHandler.addCommand(Constants.trim(receptionPacket.getData()););
                 System.out.println("Added packet to command handler. Continuing...");
             } catch (Exception e) {
                 e.printStackTrace();
