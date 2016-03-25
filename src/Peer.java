@@ -1,3 +1,4 @@
+import java.io.File;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.io.IOException;
@@ -36,7 +37,8 @@ public class Peer {
      * @param args the arguments to be passed by the user at the start of the application.
      */
     public static void main(String[] args) {
-        
+
+        int serverID = Integer.parseInt(args[0]);
         int mcPort = 9000;
         int mdbPort = 9001;
         int mdrPort = 9002;
@@ -51,19 +53,20 @@ public class Peer {
             e.printStackTrace();
         }
 
-        Peer testPeer = new Peer(mcPort, mdbPort, mdrPort, mcAddress, mdbAddress, mdrAddress);
+        Peer testPeer = new Peer(serverID, mcPort, mdbPort, mdrPort, mcAddress, mdbAddress, mdrAddress);
 
         testPeer.joinMulticastGroups();
 
         testPeer.startHandlers();
 
         //Test handler
-        testPeer.sendMCRequest();
+        testPeer.putFile("teste.txt", 1);
 
     }
 
     /**
      * Constructor for Peer. Instantiates the object and saves the ports and addresses
+     * @param serverID the ID of the peer server
      * @param mcPort the port of the MC channel
      * @param mdbPort the port of the MDB channel
      * @param mdrPort the port of the MDR channel
@@ -71,7 +74,8 @@ public class Peer {
      * @param mdbAddress the address of the MDB channel
      * @param mdrAddress the address of he MDR channel
      */
-    public Peer(int mcPort, int mdbPort,int mdrPort, InetAddress mcAddress, InetAddress mdbAddress, InetAddress mdrAddress){
+    public Peer(int serverID, int mcPort, int mdbPort,int mdrPort, InetAddress mcAddress, InetAddress mdbAddress, InetAddress mdrAddress){
+        this.serverID = serverID;
         this.mcPort = mcPort;
         this.mdbPort = mdbPort;
         this.mdrPort = mdrPort;
@@ -153,10 +157,25 @@ public class Peer {
     }
 
     /**
+     * Save a file on the service net
+     * @param fileName name of the file to be saved
+     * @param repDegree desired replication degree
+     */
+    public void putFile(String fileName, int repDegree) {
+        //Check if file exists
+        File f = new File(Constants.FILE_PATH + fileName);
+        if(!f.exists() || f.isDirectory()){
+            System.err.println("Please make sure a file exists before you try to back it up");
+            return;
+        }
+        
+    }
+    /**
      * Temporary test method to simulate a multicast request.
      */
-    public void putChunk(){
-        String message = "PUTCHUNK 1.0 ";
+    public void putChunk(String fileID, int chunkNO, int repDegree){
+        //Check if Chunk exists
+        String message = "PUTCHUNK 1.0 " + serverID + "1 " + "";
         DatagramPacket requestPacket = new DatagramPacket(message.getBytes(), message.getBytes().length, mcAddress, mcPort);
         try {
             System.out.println("Sending request package");
