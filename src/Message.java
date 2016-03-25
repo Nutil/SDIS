@@ -1,3 +1,5 @@
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -28,5 +30,21 @@ public class Message {
     public Message(Header header, byte[] body){
         this.header = header;
         this.body = body;
+    }
+
+    public byte[] getBytes(){
+        byte[] headerBytes = header.getBytes();
+        byte[] CRLF = {Header.CR, Header.LF, Header.CR, Header.LF};
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+        try {
+            outputStream.write(headerBytes);
+            outputStream.write(CRLF);
+            if(body != null){
+                outputStream.write(body);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return outputStream.toByteArray();
     }
 }

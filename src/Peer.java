@@ -1,5 +1,3 @@
-import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
-
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
@@ -9,6 +7,7 @@ import java.net.MulticastSocket;
 
 import java.io.IOException;
 import java.net.*;
+
 public class Peer {
 
     private int mcPort;
