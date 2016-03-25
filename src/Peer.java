@@ -1,7 +1,6 @@
-import java.io.File;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -64,7 +63,7 @@ public class Peer {
         testPeer.startHandlers();
 
         //Test handler
-        testPeer.putFile("teste.txt", 1);
+        testPeer.putFile("teste1.txt", 1);
 
     }
 
@@ -171,26 +170,31 @@ public class Peer {
 
         //Divide file into chunks and save them individually
         byte[] chunk = new byte[Constants.chunkSize];
-        MessageDigest digest;
         String hashedFileName = Constants.sha256(fileName);
-
 
         System.out.println("hashed string: " + hashedFileName);
 
-        
-    }
-    /**
-     * Temporary test method to simulate a multicast request.
-     */
-    public void putChunk(String fileID, int chunkNO, int repDegree){
-        //Check if Chunk exists
-        String message = "PUTCHUNK 1.0 " + serverID + "1 " + "";
-        DatagramPacket requestPacket = new DatagramPacket(message.getBytes(), message.getBytes().length, mcAddress, mcPort);
+        //local test. create hashed directory and store locally
+
+        System.out.println("File path: " + f.getParent());
         try {
-            System.out.println("Sending request package");
-            MC.send(requestPacket);
-            System.out.println("Package successfully sent");
-        } catch (IOException e) {
+            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
+            int readBytes;
+            int chunkNumber = 0;
+
+            File chunkDirectory = new File(f.getParent(), hashedFileName);
+            chunkDirectory.mkdirs();
+            //System.out.println(chunkDirectory.getAbsolutePath());
+            while((readBytes = bis.read(chunk)) > 0 ) {
+                System.out.println("Read bytes: " + readBytes);
+                File newFile = new File(chunkDirectory, chunkNumber + ".chunk");
+                FileOutputStream out = new FileOutputStream(newFile);
+                out.write(chunk, 0, readBytes);
+                out.close();
+                chunkNumber++;
+
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

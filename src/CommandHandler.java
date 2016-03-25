@@ -39,9 +39,11 @@ public class CommandHandler extends Thread {
     }
 
     private String handleCommand(DatagramPacket commandPacket){
-        String packetData = new String(commandPacket.getData(), 0, commandPacket.getLength());
-        String[] splitData = packetData.split(" ");
-        switch (splitData[0]){
+        Message msg = new Message(commandPacket.getData());
+        switch (msg.getHeader().getMessageType()){
+            case "PUTCHUNK":
+
+                break;
             case "STORED":
                 System.out.println("Handling stored command");
                 break;
@@ -50,7 +52,7 @@ public class CommandHandler extends Thread {
                 break;
         }
 
-        return splitData[0];
+        return msg.getHeader().getMessageType();
     }
 
     /**

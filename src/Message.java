@@ -7,6 +7,8 @@ import java.util.Arrays;
  */
 public class Message {
 
+
+
     private Header header;
     private byte[] body;
 
@@ -46,5 +48,13 @@ public class Message {
             e.printStackTrace();
         }
         return outputStream.toByteArray();
+    }
+
+    public byte[] getBody() {
+        return body;
+    }
+
+    public Header getHeader() {
+        return header;
     }
 }
