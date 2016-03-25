@@ -9,6 +9,7 @@ import java.net.*;
  */
 public class Peer {
 
+    private int serverID;
     /**
      * The multicast port of the corresponding socket
      */
@@ -35,6 +36,7 @@ public class Peer {
      * @param args the arguments to be passed by the user at the start of the application.
      */
     public static void main(String[] args) {
+        
         int mcPort = 9000;
         int mdbPort = 9001;
         int mdrPort = 9002;
@@ -87,6 +89,10 @@ public class Peer {
             MC = new MulticastSocket(mcPort);
             MDB = new MulticastSocket(mdbPort);
             MDR = new MulticastSocket(mdrPort);
+
+            MC.setTimeToLive(1);
+            MDB.setTimeToLive(1);
+            MDR.setTimeToLive(1);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -149,8 +155,8 @@ public class Peer {
     /**
      * Temporary test method to simulate a multicast request.
      */
-    public void sendMCRequest(){
-        String message = "STORED 1.0";
+    public void putChunk(){
+        String message = "PUTCHUNK 1.0 ";
         DatagramPacket requestPacket = new DatagramPacket(message.getBytes(), message.getBytes().length, mcAddress, mcPort);
         try {
             System.out.println("Sending request package");
