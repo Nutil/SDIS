@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class Peer {
 
+
     private int serverID;
     /**
      * The multicast port of the corresponding socket
@@ -122,7 +123,7 @@ public class Peer {
      * Start all channel handlers. They take care of receiving packets on each multicast channel and sending them to the Command Handler
      */
     public void startHandlers(){
-        CommandHandler singletonHandler = CommandHandler.getInstance();
+        CommandHandler singletonHandler = CommandHandler.getInstance(this);
         singletonHandler.start();
 
         PackageHandler mcChannelHandler = new PackageHandler(MC, mcAddress, mcPort, "MC");
@@ -235,6 +236,9 @@ public class Peer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public int getServerID() {
+        return serverID;
     }
 }
 
