@@ -32,7 +32,7 @@ public class Constants {
 
     public static byte[] trim(byte[] input){
         int i = input.length;
-        while (i-- > 0 && input[i] == 32) {
+        while (i-- > 0 && input[i] == 0) {
 
         }
         byte[] output = new byte[i+1];
