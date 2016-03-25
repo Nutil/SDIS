@@ -3,6 +3,9 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.io.IOException;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 
 /**
@@ -162,12 +165,22 @@ public class Peer {
      * @param repDegree desired replication degree
      */
     public void putFile(String fileName, int repDegree) {
-        //Check if file exists
-        File f = new File(Constants.FILE_PATH + fileName);
-        if(!f.exists() || f.isDirectory()){
-            System.err.println("Please make sure a file exists before you try to back it up");
-            return;
+        //Get File to be saved. Ensures existance
+        File f = getLocalFile(fileName);
+
+        //Divide file into chunks and save them individually
+        byte[] chunk = new byte[Constants.chunkSize];
+        MessageDigest digest;
+        String hashedFileName = null;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+            hashedFileName = new String(digest.digest(fileName.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
+
+        System.out.println("hashed string: " + hashedFileName);
+
         
     }
     /**
@@ -184,6 +197,22 @@ public class Peer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Get a local file. Makes sure it exists and is not a directory
+     * @param fileName the name of the file
+     * @return the file
+     */
+    public File getLocalFile(String fileName){
+        //Check if file exists
+        File f = new File(Constants.FILE_PATH + fileName);
+        if(!f.exists() || f.isDirectory()){
+            System.err.println("Please make sure a file exists before you try to back it up");
+            return null;
+        }
+
+        return f;
     }
 }
 
