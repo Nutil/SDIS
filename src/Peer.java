@@ -1,8 +1,11 @@
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.io.IOException;
 import java.net.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 
 /**
@@ -189,10 +192,11 @@ public class Peer {
 
     /**
      *
-     * @param fileName
+     * @param filePath
      */
-    public void getFile(String fileName){
-        
+    public void restoreFile(String filePath){
+        Constants.sha256(filePath);
+        File f = new File(filePath);
     }
     /**
      * Sends to the MC channel GETCHUNK message
@@ -200,7 +204,7 @@ public class Peer {
      * @param chunkNo specifies the number of the chunk being retrieved
      */
     public void getChunk(String fileId, int chunkNo){
-        Header header = new Header("GETCHUNK","1.0",1,fileId,chunkNo,-1);
+        Header header = new Header("GETCHUNK","1.0",this.serverID,fileId,chunkNo,-1);
         Message message = new Message(header, null);
         DatagramPacket requestPacket = new DatagramPacket(message.getBytes(),message.getBytes().length, mcAddress, mcPort);
         try {
