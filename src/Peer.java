@@ -40,29 +40,30 @@ public class Peer {
     public static void main(String[] args) {
 
         int serverID = Integer.parseInt(args[0]);
-        int mcPort = 9000;
-        int mdbPort = 9001;
-        int mdrPort = 9002;
+        int mcPort = 4000;
+        int mdbPort = 4001;
+        int mdrPort = 4002;
         InetAddress mcAddress = null;
         InetAddress mdbAddress = null;
         InetAddress mdrAddress = null;
         try {
-            mcAddress = InetAddress.getByName("225.0.0.1");
-            mdbAddress = InetAddress.getByName("225.0.0.2");
-            mdrAddress = InetAddress.getByName("225.0.0.3");
+            mcAddress = InetAddress.getByName("236.1.1.2");
+            mdbAddress = InetAddress.getByName("236.1.1.2");
+            mdrAddress = InetAddress.getByName("236.1.1.2");
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
 
         Peer testPeer = new Peer(serverID, mcPort, mdbPort, mdrPort, mcAddress, mdbAddress, mdrAddress);
 
+        CommandHandler.getInstance(testPeer);
         testPeer.joinMulticastGroups();
 
         testPeer.startHandlers();
 
         //Test handler
-        testPeer.putFile("teste1.txt", 1);
-
+        if(args[1].equals("yes"))
+            testPeer.putFile("teste1.txt", 1);
     }
 
     /**
@@ -98,12 +99,7 @@ public class Peer {
             MC.setTimeToLive(1);
             MDB.setTimeToLive(1);
             MDR.setTimeToLive(1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        //join groups
-        try {
             MC.joinGroup(mcAddress);
             MDB.joinGroup(mdbAddress);
             MDR.joinGroup(mdrAddress);
@@ -218,8 +214,6 @@ public class Peer {
             e.printStackTrace();
         }
     }
-    public int getServerID() {
-        return serverID;
-    }
+
 }
 

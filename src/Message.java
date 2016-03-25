@@ -18,6 +18,7 @@ public class Message {
             if(bytesReceived[i] == Header.CR && bytesReceived[i + 1] == Header.LF
                     && bytesReceived[i + 2] == Header.CR && bytesReceived[i + 3] == Header.LF)
                 break;
+            i++;
         }
         String messageHeader = new String (Arrays.copyOfRange(bytesReceived,0,i));
         header = new Header(messageHeader);
@@ -36,7 +37,7 @@ public class Message {
 
     public byte[] getBytes(){
         byte[] headerBytes = header.getBytes();
-        byte[] CRLF = {Header.CR, Header.LF, Header.CR, Header.LF};
+        byte[] CRLF = new byte[]{Header.CR, Header.LF, Header.CR, Header.LF};
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
         try {
             outputStream.write(headerBytes);

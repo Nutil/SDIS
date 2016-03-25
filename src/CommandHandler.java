@@ -12,18 +12,21 @@ import java.util.Random;
  */
 public class CommandHandler extends Thread {
     private static CommandHandler commandHandler = null;
-    private static LinkedList<DatagramPacket> commands;
+    private LinkedList<byte[]> commands;
     private static Peer peer;
 
     private CommandHandler(Peer peer){
         this.peer = peer;
-        commands = new LinkedList<DatagramPacket>();
+        commands = new LinkedList<byte[]>();
     }
 
     public static CommandHandler getInstance(Peer peer){
         if(commandHandler == null){
             commandHandler = new CommandHandler(peer);
         }
+        return commandHandler;
+    }
+    public static CommandHandler getInstance(){
         return commandHandler;
     }
 
@@ -43,19 +46,22 @@ public class CommandHandler extends Thread {
 
             //Queue isn't empty, handle that command
             System.out.println("Working on queued commands. Commands queue size: " + commands.size());
-            DatagramPacket command = commands.poll();
+            byte[] command = commands.poll();
             String handledCommand = handleCommand(command);
             System.out.println(handledCommand + " | Command handling finished.");
             System.out.println("Commands queue size: " + commands.size() + ". Continuing...");
         }
     }
 
-    private String handleCommand(DatagramPacket commandPacket){
-        Message msg = new Message(commandPacket.getData());
+    private String handleCommand(byte[] commandPacket){
+        Message msg = new Message(commandPacket);
+        System.out.println(msg.getHeader().getMessageType());
         switch (msg.getHeader().getMessageType()){
             case "PUTCHUNK":
-                if(msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION)){
-                    File chunkDir = new File(Constants.FILE_PATH + msg.getHeader().getFileId());
+                if(msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION) && msg.getHeader().getSenderId() != peer.getServerID()){
+                    File serverDir = new File(Constants.FILE_PATH + peer.getServerID());
+                    File chunkDir = new File(serverDir, msg.getHeader().getFileId());
+                    chunkDir.mkdirs();
                     File chunk = new File(chunkDir,msg.getHeader().getChunkNo() + ".chunk");
                     try {
                         FileOutputStream out = new FileOutputStream(chunk);
@@ -65,7 +71,7 @@ public class CommandHandler extends Thread {
                                 msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), -1);
                         Message rsp = new Message(rspHeader,null);
                         MulticastSocket socket = peer.getMC();
-                        DatagramPacket packet = new DatagramPacket(rsp.getBytes(), rsp.getBytes().length, socket.getInetAddress(),socket.getPort());
+                        DatagramPacket packet = new DatagramPacket(rsp.getBytes(), rsp.getBytes().length, peer.getMcAddress(), peer.getMcPort());
                         Random rn = new Random();
                         int randomDelay = rn.nextInt(Constants.delay + 1);
                         Thread.sleep(randomDelay);
@@ -78,7 +84,8 @@ public class CommandHandler extends Thread {
                 }
                 break;
             case "STORED":
-                
+                ReplicationInfo repInfo = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
+                FileInfo.getInstance().addInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),repInfo.getActualRepDegree() +1, repInfo.getDesiredRepDegree());
                 break;
             default:
                 System.out.println("Unrecognized command. Disregarding");
@@ -91,9 +98,8 @@ public class CommandHandler extends Thread {
     /**
      * Adds a command packet to the priority queue
      */
-    public static void addCommand(DatagramPacket command) {
+    public void addCommand(byte[] command) {
         commands.add(command);
-        return;
     }
 
 }

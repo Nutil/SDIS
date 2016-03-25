@@ -32,19 +32,20 @@ public class PutchunkProtocol extends Thread {
             int readBytes;
             int chunkNumber = 0;
             int resends = 0;
-            int chunkRepDegree = 0;
             int timeToSleep = 1000;
-
+            int chunkRepDegree = 0;
             System.out.println("Preparing to send chunks");
             while((readBytes = bis.read(chunk)) > 0 ) {
+                FileInfo.getInstance().addInfo(hashedFileName,chunkNumber,0,repDegree);
                 System.out.println("Read first chunk. Sending chunk with size: " + chunk.length);
                 for(; resends < 5 && chunkRepDegree < repDegree; resends++) {
+                    chunkRepDegree = FileInfo.getInstance().getInfo(hashedFileName,chunkNumber).getActualRepDegree();
                     Header messageHeader = new Header("PUTCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(), hashedFileName, chunkNumber, repDegree);
                     Message msg = new Message(messageHeader, chunk);
                     DatagramPacket requestPacket = new DatagramPacket(msg.getBytes(), msg.getBytes().length, peer.getMdbAddress(), peer.getMdbPort());
                     System.out.println("Sending packet: " + requestPacket);
                     peer.getMDB().send(requestPacket);
-                    System.out.println("Read bytes: " + readBytes);
+                    System.out.println("Packet sent");
 
                     //Await peer responses
                     Thread.sleep(timeToSleep *(long) Math.pow(2, (double)resends));
@@ -52,12 +53,12 @@ public class PutchunkProtocol extends Thread {
 
                     //Update resends
                     resends++;
-
                 }
 
                 resends = 0;
                 chunkRepDegree = 0;
                 chunkNumber++;
+
             }
 
         } catch(Exception e) {
