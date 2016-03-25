@@ -119,5 +119,30 @@ public class Peer {
             e.printStackTrace();
         }
     }
+
+    /**
+     *
+     * @param fileName
+     */
+    public void getFile(String fileName){
+        
+    }
+    /**
+     * Sends to the MC channel GETCHUNK message
+     * @param fileId specifies the id of the file
+     * @param chunkNo specifies the number of the chunk being retrieved
+     */
+    public void getChunk(String fileId, int chunkNo){
+        Header header = new Header("GETCHUNK","1.0",1,fileId,chunkNo,-1);
+        Message message = new Message(header, null);
+        DatagramPacket requestPacket = new DatagramPacket(message.getBytes(),message.getBytes().length, mcAddress, mcPort);
+        try {
+            System.out.println("Sending getchunk message");
+            MC.send(requestPacket);
+            System.out.println("Getchunk successfully sent");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
