@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Represents a Server Peer. Contains main method
  */
+
 public class Peer {
 
     private int serverID;
@@ -171,13 +172,8 @@ public class Peer {
         //Divide file into chunks and save them individually
         byte[] chunk = new byte[Constants.chunkSize];
         MessageDigest digest;
-        String hashedFileName = null;
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-            hashedFileName = new String(digest.digest(fileName.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+        String hashedFileName = Constants.sha256(fileName);
+
 
         System.out.println("hashed string: " + hashedFileName);
 
@@ -204,15 +200,37 @@ public class Peer {
      * @param fileName the name of the file
      * @return the file
      */
-    public File getLocalFile(String fileName){
+    public File getLocalFile(String fileName) {
         //Check if file exists
         File f = new File(Constants.FILE_PATH + fileName);
-        if(!f.exists() || f.isDirectory()){
+        if (!f.exists() || f.isDirectory()) {
             System.err.println("Please make sure a file exists before you try to back it up");
             return null;
         }
 
         return f;
+    }
+
+    public void restoreFile(String filePath){
+        Constants.sha256(filePath);
+        File f = new File(filePath);
+    }
+    /**
+     * Sends to the MC channel GETCHUNK message
+     * @param fileId specifies the id of the file
+     * @param chunkNo specifies the number of the chunk being retrieved
+     */
+    public void getChunk(String fileId, int chunkNo){
+        Header header = new Header("GETCHUNK","1.0",this.serverID,fileId,chunkNo,-1);
+        Message message = new Message(header, null);
+        DatagramPacket requestPacket = new DatagramPacket(message.getBytes(),message.getBytes().length, mcAddress, mcPort);
+        try {
+            System.out.println("Sending getchunk message");
+            MC.send(requestPacket);
+            System.out.println("Getchunk successfully sent");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 

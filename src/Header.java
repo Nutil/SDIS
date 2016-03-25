@@ -74,4 +74,12 @@ public class Header {
         return replicationDegree;
     }
 
+    public byte[] getBytes(){
+        String msg = messageType + " " + version + " " + senderId + " " + fileId + " " + chunkNo + " ";
+        if(replicationDegree != -1){
+            msg += replicationDegree + " ";
+        }
+        return msg.getBytes();
+    }
+
 }
