@@ -2,9 +2,6 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 
 /**
@@ -159,60 +156,44 @@ public class Peer {
         return MDR;
     }
 
+    public int getServerID() {
+        return serverID;
+    }
+
+    public int getMcPort() {
+        return mcPort;
+    }
+
+    public int getMdbPort() {
+        return mdbPort;
+    }
+
+    public int getMdrPort() {
+        return mdrPort;
+    }
+
+    public InetAddress getMdbAddress() {
+        return mdbAddress;
+    }
+
+    public InetAddress getMcAddress() {
+        return mcAddress;
+    }
+
+    public InetAddress getMdrAddress() {
+        return mdrAddress;
+    }
+
     /**
      * Save a file on the service net
      * @param fileName name of the file to be saved
      * @param repDegree desired replication degree
      */
     public void putFile(String fileName, int repDegree) {
-        //Get File to be saved. Ensures existance
-        File f = getLocalFile(fileName);
+        System.out.println("Starting backup protocol for file " + fileName);
 
-        //Divide file into chunks and save them individually
-        byte[] chunk = new byte[Constants.chunkSize];
-        String hashedFileName = Constants.sha256(fileName);
-
-        System.out.println("hashed string: " + hashedFileName);
-
-        //local test. create hashed directory and store locally
-
-        System.out.println("File path: " + f.getParent());
-        try {
-            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
-            int readBytes;
-            int chunkNumber = 0;
-
-            File chunkDirectory = new File(f.getParent(), hashedFileName);
-            chunkDirectory.mkdirs();
-            //System.out.println(chunkDirectory.getAbsolutePath());
-            while((readBytes = bis.read(chunk)) > 0 ) {
-                System.out.println("Read bytes: " + readBytes);
-                File newFile = new File(chunkDirectory, chunkNumber + ".chunk");
-                FileOutputStream out = new FileOutputStream(newFile);
-                out.write(chunk, 0, readBytes);
-                out.close();
-                chunkNumber++;
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Get a local file. Makes sure it exists and is not a directory
-     * @param fileName the name of the file
-     * @return the file
-     */
-    public File getLocalFile(String fileName) {
-        //Check if file exists
-        File f = new File(Constants.FILE_PATH + fileName);
-        if (!f.exists() || f.isDirectory()) {
-            System.err.println("Please make sure a file exists before you try to back it up");
-            return null;
-        }
-
-        return f;
+        PutchunkProtocol chunkPutter = new PutchunkProtocol(this, fileName, repDegree);
+        chunkPutter.start();
     }
 
     public void restoreFile(String filePath){
