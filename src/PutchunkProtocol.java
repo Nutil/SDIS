@@ -35,7 +35,7 @@ public class PutchunkProtocol extends Thread {
             int timeToSleep = 1000;
             int chunkRepDegree = 0;
             System.out.println("Preparing to send chunks");
-            while((readBytes = bis.read(chunk)) > 0 ) {
+            while((readBytes = bis.read(chunk)) > -1 ) {
                 FileInfo.getInstance().addInfo(hashedFileName,chunkNumber,0,repDegree);
                 System.out.println("Read first chunk. Sending chunk with size: " + chunk.length);
                 for(; resends < 5 && chunkRepDegree < repDegree; resends++) {
@@ -58,7 +58,7 @@ public class PutchunkProtocol extends Thread {
                 resends = 0;
                 chunkRepDegree = 0;
                 chunkNumber++;
-
+                chunk = new byte[Constants.chunkSize];
             }
 
         } catch(Exception e) {
