@@ -10,6 +10,7 @@ public class Constants {
     public static String FILE_PATH = System.getProperty("user.dir") + File.separator + "src" + File.separator + "Local Files" + File.separator;
     public static int chunkSize = 64000; // 64KB
     public static int delay = 400; // 64KB
+    public static String  FILE_EXTENSION = ".chunk";
 
 
     public static String sha256(String base) {

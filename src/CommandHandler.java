@@ -1,10 +1,9 @@
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 /**
@@ -13,11 +12,15 @@ import java.util.Random;
 public class CommandHandler extends Thread {
     private static CommandHandler commandHandler = null;
     private LinkedList<byte[]> commands;
+    private LinkedBlockingQueue<String> restoreRequests;
+    private LinkedBlockingQueue<String> myRSTRequests;
     private static Peer peer;
 
     private CommandHandler(Peer peer){
         this.peer = peer;
-        commands = new LinkedList<byte[]>();
+        commands = new LinkedList<>();
+        restoreRequests = new LinkedBlockingQueue<>();
+        myRSTRequests = new LinkedBlockingQueue<>();
     }
 
     public static CommandHandler getInstance(Peer peer){
@@ -45,9 +48,12 @@ public class CommandHandler extends Thread {
             //Queue isn't empty, handle that command
             System.out.println("Working on queued commands. Commands queue size: " + commands.size());
             byte[] command = commands.poll();
-            String handledCommand = handleCommand(command);
-            System.out.println(handledCommand + " | Command handling finished.");
-            System.out.println("Commands queue size: " + commands.size() + ". Continuing...");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String handledCommand = handleCommand(command);
+                }
+            });
         }
     }
 
@@ -60,7 +66,7 @@ public class CommandHandler extends Thread {
                     File serverDir = new File(Constants.FILE_PATH + peer.getServerID());
                     File chunkDir = new File(serverDir, msg.getHeader().getFileId());
                     chunkDir.mkdirs();
-                    File chunk = new File(chunkDir,msg.getHeader().getChunkNo() + ".chunk");
+                    File chunk = new File(chunkDir,msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
                     try {
                         FileOutputStream out = new FileOutputStream(chunk);
                         out.write(msg.getBody());
@@ -89,6 +95,34 @@ public class CommandHandler extends Thread {
                 }
                 FileInfo.getInstance().addInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),actualRepDeg +1,msg.getHeader().getReplicationDegree());
                 break;
+            case "GETCHUNK":
+                String requestName = msg.getHeader().getFileId() + "_" + msg.getHeader().getChunkNo();
+                restoreRequests.add(requestName);
+                File dir = new File(Constants.FILE_PATH, msg.getHeader().getFileId());
+                File chunk = new File(dir, msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
+                if(chunk.exists() && !chunk.isDirectory()) {
+                    MulticastSocket dataSocket = peer.getMDR();
+                    Random rn = new Random();
+                    int randomDelay = rn.nextInt(Constants.delay + 1);
+                    byte[] chunkData = new byte[Constants.chunkSize];
+                    try {
+                        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
+                        bis.read(chunkData);
+                        chunkData = Constants.trim(chunkData);
+                        Header rpsHeader = new Header("CHUNK",Constants.PROTOCOL_VERSION,peer.getServerID(), msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),-1);
+                        Message rsp = new Message(rpsHeader,chunkData);
+                        Thread.sleep(randomDelay);
+                        if(restoreRequests.remove(requestName)){
+                            DatagramPacket chunkPacket = new DatagramPacket(rsp.getBytes(),rsp.getBytes().length);
+                            peer.getMDR().send(chunkPacket);
+                        }
+                    } catch (Exception e) {
+                        return msg.getHeader().getMessageType();
+                    }
+                }
+                break;
+            case "CHUNK":
+
             default:
                 System.out.println("Unrecognized command. Disregarding");
                 break;
