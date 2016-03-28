@@ -2,6 +2,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.DatagramPacket;
+import java.net.MulticastSocket;
 
 /**
  * Created by Luís on 25/03/2016.
@@ -25,8 +26,6 @@ public class PutchunkProtocol extends Thread {
         byte[] chunk = new byte[Constants.chunkSize];
         String hashedFileName = Constants.sha256(fileName);
 
-        System.out.println("hashed string: " + hashedFileName);
-
         try {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
             int readBytes;
@@ -43,13 +42,10 @@ public class PutchunkProtocol extends Thread {
                     Header messageHeader = new Header("PUTCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(), hashedFileName, chunkNumber, repDegree);
                     Message msg = new Message(messageHeader, chunk);
                     DatagramPacket requestPacket = new DatagramPacket(msg.getBytes(), msg.getBytes().length, peer.getMdbAddress(), peer.getMdbPort());
-                    System.out.println("Sending packet: " + requestPacket);
                     peer.getMDB().send(requestPacket);
-                    System.out.println("Packet sent");
 
                     //Await peer responses
-                    Thread.sleep(timeToSleep *(long) Math.pow(2, (double)resends));
-                    //Update chunkRepDegree. For condition will break for loop if degree has been met
+                    Thread.sleep(timeToSleep *(long) Math.pow(1, (double)resends));
 
                     //Update resends
                     resends++;

@@ -27,14 +27,12 @@ public class PackageHandler extends Thread {
         System.out.println("Listening on multicast group " + name);
         while(true) {
             try {
-                byte[] packetData = new byte[Constants.PACKET_BUFFER_SIZE + 1000];
+                byte[] packetData = new byte[Constants.PACKET_BUFFER_SIZE];
                 DatagramPacket receptionPacket = new DatagramPacket(packetData, packetData.length);
                 System.out.println("Awaiting packets on " + name);
                 mcSocket.receive(receptionPacket);
                 System.out.println("Received a packet on " + name + ". Calling command handler");
                 commandHandler.addCommand(Constants.trim(receptionPacket.getData()));
-
-                System.out.println("Added packet to command handler. Continuing...");
             } catch (Exception e) {
                 e.printStackTrace();
             }

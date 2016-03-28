@@ -13,6 +13,7 @@ public class Message {
     private byte[] body;
 
     public Message(byte[] bytesReceived){
+
         int i = 0;
         while(i < bytesReceived.length - 3){
             if(bytesReceived[i] == Header.CR && bytesReceived[i + 1] == Header.LF

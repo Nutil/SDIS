@@ -59,20 +59,22 @@ public class CommandHandler extends Thread {
 
     private String handleCommand(byte[] commandPacket){
         Message msg = new Message(commandPacket);
-        System.out.println(msg.getHeader().getMessageType());
         switch (msg.getHeader().getMessageType()){
             case "PUTCHUNK":
                 if(msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION) && msg.getHeader().getSenderId() != peer.getServerID()){
                     File serverDir = new File(Constants.FILE_PATH + peer.getServerID());
                     File chunkDir = new File(serverDir, msg.getHeader().getFileId());
-                    chunkDir.mkdirs();
+                    if(!chunkDir.exists()){
+                        chunkDir.mkdirs();
+                    }
                     File chunk = new File(chunkDir,msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
                     try {
+                        chunk.createNewFile();
                         FileOutputStream out = new FileOutputStream(chunk);
                         out.write(msg.getBody());
                         out.close();
                         Header rspHeader = new Header("STORED", Constants.PROTOCOL_VERSION, peer.getServerID(),
-                                msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), -1);
+                                msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), Constants.REP_DEGREE_IGNORE);
                         Message rsp = new Message(rspHeader,null);
                         MulticastSocket socket = peer.getMC();
                         DatagramPacket packet = new DatagramPacket(rsp.getBytes(), rsp.getBytes().length, peer.getMcAddress(), peer.getMcPort());
@@ -86,7 +88,6 @@ public class CommandHandler extends Thread {
                         e.printStackTrace();
                     }
                 }
-                break;
             case "STORED":
                 int actualRepDeg = 0;
                 ReplicationInfo repInfo = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
