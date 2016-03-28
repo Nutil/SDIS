@@ -218,8 +218,5 @@ public class Peer {
             e.printStackTrace();
         }
     }
-    public int getServerID() {
-        return serverID;
-    }
 }
 

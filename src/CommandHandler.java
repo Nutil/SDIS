@@ -27,6 +27,10 @@ public class CommandHandler extends Thread {
         return commandHandler;
     }
 
+    public static CommandHandler getInstance(){
+        return commandHandler;
+    }
+
     public void run(){
         while(true){
             System.out.println("Checking queued commands...");
@@ -46,7 +50,6 @@ public class CommandHandler extends Thread {
             DatagramPacket command = commands.poll();
             String handledCommand = handleCommand(command);
             System.out.println(handledCommand + " | Command handling finished.");
-            System.out.println("Commands queue size: " + commands.size() + ". Continuing...");
         }
     }
 
@@ -54,31 +57,44 @@ public class CommandHandler extends Thread {
         Message msg = new Message(commandPacket.getData());
         switch (msg.getHeader().getMessageType()){
             case "PUTCHUNK":
-                if(msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION)){
-                    File chunkDir = new File(Constants.FILE_PATH + msg.getHeader().getFileId());
-                    File chunk = new File(chunkDir,msg.getHeader().getChunkNo() + ".chunk");
+                if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
+                    break;
+
+                File chunkDir = new File(Constants.FILE_PATH + msg.getHeader().getFileId());
+                if(!chunkDir.exists()){
+                    chunkDir.mkdirs();
+                }
+
+                File chunk = new File(chunkDir,msg.getHeader().getChunkNo() + ".chunk");
+                if(!chunk.exists()){
                     try {
-                        FileOutputStream out = new FileOutputStream(chunk);
-                        out.write(msg.getBody());
-                        out.close();
-                        Header rspHeader = new Header("STORED", Constants.PROTOCOL_VERSION, peer.getServerID(),
-                                msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), -1);
-                        Message rsp = new Message(rspHeader,null);
-                        MulticastSocket socket = peer.getMC();
-                        DatagramPacket packet = new DatagramPacket(rsp.getBytes(), rsp.getBytes().length, socket.getInetAddress(),socket.getPort());
-                        Random rn = new Random();
-                        int randomDelay = rn.nextInt(Constants.delay + 1);
-                        Thread.sleep(randomDelay);
-                        socket.send(packet);
+                        chunk.createNewFile();
                     } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+
+                try {
+                    FileOutputStream out = new FileOutputStream(chunk);
+                    out.write(msg.getBody());
+                    out.close();
+                    Header rspHeader = new Header("STORED", Constants.PROTOCOL_VERSION, peer.getServerID(),
+                            msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), Constants.REP_DEGREE_IGNORE);
+                    Message rsp = new Message(rspHeader,null);
+                    MulticastSocket socket = peer.getMC();
+                    DatagramPacket packet = new DatagramPacket(rsp.getBytes(), rsp.getBytes().length, peer.getMcAddress(), peer.getMcPort());
+                    Random rn = new Random();
+                    int randomDelay = rn.nextInt(Constants.delay + 1);
+                    Thread.sleep(randomDelay);
+                    socket.send(packet);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case "STORED":
-                
+                System.out.println("Received STORED command. Ignoring...");
                 break;
             default:
                 System.out.println("Unrecognized command. Disregarding");
