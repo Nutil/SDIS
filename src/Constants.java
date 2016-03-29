@@ -6,7 +6,7 @@ import java.security.MessageDigest;
  */
 public class Constants {
     public static String PROTOCOL_VERSION = "1.0";
-    public static int PACKET_BUFFER_SIZE = 65536;
+    public static int PACKET_BUFFER_SIZE = 65536; //1024 * 64 B
     public static String FILE_PATH = System.getProperty("user.dir") + File.separator + "src" + File.separator + "Local Files" + File.separator;
     public static int chunkSize = 1000*64; // 64KB
     public static int delay = 400; // random delay for answering
