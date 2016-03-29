@@ -30,12 +30,10 @@ public class PutchunkProtocol extends Thread {
             int readBytes;
             int chunkNumber = 0;
             int resends = 0;
-            int timeToSleep = 1000;
+            int timeToSleep = 100;
             int chunkRepDegree = 0;
-            System.out.println("Preparing to send chunks");
             while((readBytes = bis.read(chunk)) > -1 ) {
                 FileInfo.getInstance().addInfo(hashedFileName,chunkNumber,0,repDegree);
-                System.out.println("Read first chunk. Sending chunk with size: " + chunk.length);
                 for(; resends < 5 && chunkRepDegree < repDegree; resends++) {
                     chunkRepDegree = FileInfo.getInstance().getInfo(hashedFileName,chunkNumber).getActualRepDegree();
                     Header messageHeader = new Header("PUTCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(), hashedFileName, chunkNumber, repDegree);
@@ -44,7 +42,7 @@ public class PutchunkProtocol extends Thread {
                     peer.getMDB().send(requestPacket);
 
                     //Await peer responses
-                    Thread.sleep(timeToSleep *(long) Math.pow(2, (double)resends));
+                    Thread.sleep(timeToSleep *(long) Math.pow(1, (double)resends));
                 }
 
                 resends = 0;
@@ -52,10 +50,8 @@ public class PutchunkProtocol extends Thread {
                 chunkNumber++;
                 chunk = new byte[Constants.chunkSize];
             }
-
         } catch(Exception e) {
             e.printStackTrace();
         }
-
     }
 }

@@ -64,6 +64,17 @@ public class Peer {
         //Test handler
         if(args[1].equals("yes"))
             testPeer.putFile("teste1.txt", 1);
+
+        //Sleep for a bit
+        try {
+            Thread.sleep(8000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        //Test deletion
+        testPeer.deleteFile("teste1.txt");
+
     }
 
     /**
@@ -196,6 +207,17 @@ public class Peer {
     public void restoreFile(String filePath){
         Constants.sha256(filePath);
         File f = new File(filePath);
+    }
+
+    /**
+     * Delete a file on the service net and locally
+     * @param fileName the name of the file to be deleted
+     */
+    public void deleteFile(String fileName) {
+        System.out.println("Starting file deletion protocol for file " + fileName);
+
+        DeleteFileProtocol fileDeleter = new DeleteFileProtocol(this, fileName);
+        fileDeleter.start();
     }
     /**
      * Sends to the MC channel GETCHUNK message

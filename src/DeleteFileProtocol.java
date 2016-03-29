@@ -1,4 +1,8 @@
 import java.io.File;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.util.Hashtable;
+import java.util.Iterator;
 
 /**
  * Protocol to delete a file across the backup system
@@ -15,8 +19,30 @@ public class DeleteFileProtocol extends Thread {
     public void run() {
         File f = peer.getLocalFile(fileName);
 
-        byte[] chunk = new byte[Constants.chunkSize];
         String hashedFileName = Constants.sha256(fileName);
+
+        FileInfo filesTable = FileInfo.getInstance();
+
+        filesTable.removeFileEntries(hashedFileName);
+
+        int resends = 0;
+        int timeToSleep = 100;
+        byte[] emptyBody = null;
+
+        //Send DELETE command 5 times, once per second
+        for(; resends < 5; resends++){
+            Header messageHeader = new Header("DELETE", Constants.PROTOCOL_VERSION, peer.getServerID(), hashedFileName, -1, -1);
+            Message msg = new Message(messageHeader, emptyBody);
+            DatagramPacket requestPacket = new DatagramPacket(msg.getBytes(), msg.getBytes().length, peer.getMcAddress(), peer.getMcPort());
+            try {
+                peer.getMC().send(requestPacket);
+                Thread.sleep(timeToSleep);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 }

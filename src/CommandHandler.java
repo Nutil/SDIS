@@ -74,12 +74,10 @@ public class CommandHandler extends Thread {
                 }
                 chunk = new File(chunkDir,msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
                 try {
-                    System.out.println("Creating new chunk file and writing chunk.");
                     chunk.createNewFile();
                     FileOutputStream out = new FileOutputStream(chunk);
                     out.write(msg.getBody());
                     out.close();
-                    System.out.println("Finished storing chunk file 837645872365473456234");
                     Header rspHeader = new Header("STORED", Constants.PROTOCOL_VERSION, peer.getServerID(),
                             msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), Constants.REP_DEGREE_IGNORE);
                     Message rsp = new Message(rspHeader,null);
@@ -96,6 +94,7 @@ public class CommandHandler extends Thread {
                 }
                 break;
             case "STORED":
+                System.out.println("Received STORED");
                 int actualRepDeg = 0;
                 ReplicationInfo repInfo = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
                 if(repInfo != null){
@@ -130,6 +129,11 @@ public class CommandHandler extends Thread {
                 }
                 break;
             case "CHUNK":
+                break;
+            case "DELETE":
+                System.out.println("Received delete command. Deleting local table entries...");
+                FileInfo theInfo = FileInfo.getInstance();
+                theInfo.removeFileEntries(msg.getHeader().getFileId());
                 break;
             default:
                 System.out.println("Unrecognized command. Disregarding");
