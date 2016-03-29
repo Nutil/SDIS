@@ -22,18 +22,17 @@ public class PackageHandler extends Thread {
      * Abstract method that contains the core functionality of the package handler, namely, running the thread that
      */
     public void run() {
-        byte[] packetData = new byte[Constants.PACKET_BUFFER_SIZE];
-        DatagramPacket receptionPacket = null;
         CommandHandler commandHandler = CommandHandler.getInstance();
 
         System.out.println("Listening on multicast group " + name);
         while(true) {
             try {
-                receptionPacket = new DatagramPacket(packetData, Constants.PACKET_BUFFER_SIZE, mcAddress, mcPort);
+                byte[] packetData = new byte[Constants.PACKET_BUFFER_SIZE];
+                DatagramPacket receptionPacket = new DatagramPacket(packetData, packetData.length);
                 System.out.println("Awaiting packets on " + name);
                 mcSocket.receive(receptionPacket);
-                System.out.println("Received a packet on " + name + ". Adding to command handler");
-                commandHandler.addCommand(receptionPacket);
+                System.out.println("Received a packet on " + name + ". Calling command handler");
+                commandHandler.addCommand(Constants.trim(receptionPacket.getData()));
             } catch (Exception e) {
                 e.printStackTrace();
             }

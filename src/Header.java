@@ -23,7 +23,10 @@ public class Header {
         senderId = Integer.parseInt(fields[2]);
         fileId = fields[3];
         chunkNo = Integer.parseInt(fields[4]);
-        replicationDegree = Integer.parseInt(fields[5]);
+        if(fields.length == 6)
+            replicationDegree = Integer.parseInt(fields[5]);
+        else
+            replicationDegree = -1;
 
         if(!Arrays.asList(types).contains(messageType))
             throw new IllegalArgumentException("Invalid <MessageType>");

@@ -11,6 +11,7 @@ public class Constants {
     public static int chunkSize = 1000*64; // 64KB
     public static int delay = 400; // random delay for answering
     public static int REP_DEGREE_IGNORE = 999999; // Arbitrary value to put at rep degree for the packet when none is needed
+    public static String FILE_EXTENSION = ".chunk"; //Chunk file extension
 
 
     public static String sha256(String base) {
@@ -18,7 +19,6 @@ public class Constants {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(base.getBytes("UTF-8"));
             StringBuffer hexString = new StringBuffer();
-
             for (int i = 0; i < hash.length; i++) {
                 String hex = Integer.toHexString(0xff & hash[i]);
                 if(hex.length() == 1) hexString.append('0');
@@ -29,5 +29,15 @@ public class Constants {
         } catch(Exception ex){
             throw new RuntimeException(ex);
         }
+    }
+
+    public static byte[] trim(byte[] input){
+        int i = input.length;
+        while (i-- > 0 && input[i] == 0) {
+
+        }
+        byte[] output = new byte[i+1];
+        System.arraycopy(input, 0, output, 0, i+1);
+        return output;
     }
 }
