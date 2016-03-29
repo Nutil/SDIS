@@ -2,6 +2,8 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.*;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 /**
@@ -32,6 +34,8 @@ public class Peer {
     private MulticastSocket MC;
     private MulticastSocket MDB;
     private MulticastSocket MDR;
+
+    private LinkedBlockingQueue<RestoreFileProtocol> myRestoreRequests; // A list of the files that the peer wants to restore
 
     /**
      * The main method. Starts the peer.
@@ -64,7 +68,11 @@ public class Peer {
         //Test handler
         if(args[1].equals("yes"))
             testPeer.putFile("teste1.txt", 1);
+        else if(args[1].equals("restore"))
+            testPeer.restoreFile("teste1.txt");
     }
+
+
 
     /**
      * Constructor for Peer. Instantiates the object and saves the ports and addresses
@@ -84,6 +92,7 @@ public class Peer {
         this.mcAddress = mcAddress;
         this.mdbAddress = mdbAddress;
         this.mdrAddress = mdrAddress;
+        this.myRestoreRequests = new LinkedBlockingQueue<>();
     }
 
     /**
@@ -193,26 +202,22 @@ public class Peer {
         chunkPutter.start();
     }
 
-    public void restoreFile(String filePath){
-        Constants.sha256(filePath);
-        File f = new File(filePath);
+    public void restoreFile(String fileName){
+        RestoreFileProtocol restore = new RestoreFileProtocol(this,fileName,Constants.sha256(fileName));
+        myRestoreRequests.add(restore);
+        restore.getNextChunk();
     }
-    /**
-     * Sends to the MC channel GETCHUNK message
-     * @param fileId specifies the id of the file
-     * @param chunkNo specifies the number of the chunk being retrieved
-     */
-    public void getChunk(String fileId, int chunkNo){
-        Header header = new Header("GETCHUNK","1.0",this.serverID,fileId,chunkNo,-1);
-        Message message = new Message(header, null);
-        DatagramPacket requestPacket = new DatagramPacket(message.getBytes(),message.getBytes().length, mcAddress, mcPort);
-        try {
-            System.out.println("Sending getchunk message");
-            MC.send(requestPacket);
-            System.out.println("Getchunk successfully sent");
-        } catch (IOException e) {
-            e.printStackTrace();
+
+    public void receivedChunk(String fileId, int chunkNo, byte[] body) {
+        for(RestoreFileProtocol fileProtocol : myRestoreRequests) {
+            if(fileProtocol.getFileId().equals(fileId)) {
+                fileProtocol.addBytes(chunkNo,Constants.trim(body));
+            }
         }
+    }
+
+    public void removeRestoreRequest(RestoreFileProtocol restoreFileProtocol) {
+        myRestoreRequests.remove(restoreFileProtocol);
     }
 }
 

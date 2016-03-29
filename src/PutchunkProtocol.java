@@ -28,13 +28,12 @@ public class PutchunkProtocol extends Thread {
 
         try {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
-            int readBytes;
             int chunkNumber = 0;
             int resends = 0;
             int timeToSleep = 1000;
             int chunkRepDegree = 0;
             System.out.println("Preparing to send chunks");
-            while((readBytes = bis.read(chunk)) > -1 ) {
+            while(bis.read(chunk) > -1 ) {
                 FileInfo.getInstance().addInfo(hashedFileName,chunkNumber,0,repDegree);
                 System.out.println("Read first chunk. Sending chunk with size: " + chunk.length);
                 for(; resends < 5 && chunkRepDegree < repDegree; resends++) {
