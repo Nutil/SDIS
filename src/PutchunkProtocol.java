@@ -18,7 +18,7 @@ public class PutchunkProtocol extends Thread {
     }
 
     public void run(){
-        //Get File to be saved. Ensures existance
+        //Get File to be saved.
         File f = peer.getLocalFile(fileName);
 
         byte[] chunk = new byte[Constants.chunkSize];

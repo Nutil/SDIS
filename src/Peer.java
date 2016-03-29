@@ -247,7 +247,7 @@ public class Peer {
         //Check if file exists
         File f = new File(Constants.FILE_PATH + fileName);
         if (!f.exists() || f.isDirectory()) {
-            System.err.println("Please make sure a file exists before you try to back it up");
+            System.err.println("Please make sure a file exists before accessing it.");
             return null;
         }
 

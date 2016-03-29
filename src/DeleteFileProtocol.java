@@ -37,9 +37,7 @@ public class DeleteFileProtocol extends Thread {
             try {
                 peer.getMC().send(requestPacket);
                 Thread.sleep(timeToSleep);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
