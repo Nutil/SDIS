@@ -214,5 +214,22 @@ public class Peer {
             e.printStackTrace();
         }
     }
+
+
+    /**
+     * Get a local file. Makes sure it exists and is not a directory
+     * @param fileName the name of the file
+     * @return the file
+     */
+    public File getLocalFile(String fileName) {
+        //Check if file exists
+        File f = new File(Constants.FILE_PATH + fileName);
+        if (!f.exists() || f.isDirectory()) {
+            System.err.println("Please make sure a file exists before you try to back it up");
+            return null;
+        }
+
+        return f;
+    }
 }
 
