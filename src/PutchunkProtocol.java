@@ -45,10 +45,7 @@ public class PutchunkProtocol extends Thread {
                     peer.getMDB().send(requestPacket);
 
                     //Await peer responses
-                    Thread.sleep(timeToSleep *(long) Math.pow(1, (double)resends));
-
-                    //Update resends
-                    resends++;
+                    Thread.sleep(timeToSleep *(long) Math.pow(2, (double)resends));
                 }
 
                 resends = 0;

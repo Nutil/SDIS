@@ -53,41 +53,48 @@ public class CommandHandler extends Thread {
                 public void run() {
                     String handledCommand = handleCommand(command);
                 }
-            });
+            }).start();
         }
     }
 
     private String handleCommand(byte[] commandPacket){
         Message msg = new Message(commandPacket);
+        File chunk;
         switch (msg.getHeader().getMessageType()){
             case "PUTCHUNK":
-                if(msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION) && msg.getHeader().getSenderId() != peer.getServerID()){
-                    File serverDir = new File(Constants.FILE_PATH + peer.getServerID());
-                    File chunkDir = new File(serverDir, msg.getHeader().getFileId());
-                    if(!chunkDir.exists()){
-                        chunkDir.mkdirs();
-                    }
-                    File chunk = new File(chunkDir,msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
-                    try {
-                        chunk.createNewFile();
-                        FileOutputStream out = new FileOutputStream(chunk);
-                        out.write(msg.getBody());
-                        out.close();
-                        Header rspHeader = new Header("STORED", Constants.PROTOCOL_VERSION, peer.getServerID(),
-                                msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), Constants.REP_DEGREE_IGNORE);
-                        Message rsp = new Message(rspHeader,null);
-                        MulticastSocket socket = peer.getMC();
-                        DatagramPacket packet = new DatagramPacket(rsp.getBytes(), rsp.getBytes().length, peer.getMcAddress(), peer.getMcPort());
-                        Random rn = new Random();
-                        int randomDelay = rn.nextInt(Constants.delay + 1);
-                        Thread.sleep(randomDelay);
-                        socket.send(packet);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
+                    break;
+                if(msg.getHeader().getSenderId() == peer.getServerID())
+                    break;
+
+                File serverDir = new File(Constants.FILE_PATH + peer.getServerID());
+                File chunkDir = new File(serverDir, msg.getHeader().getFileId());
+                if(!chunkDir.exists()){
+                    chunkDir.mkdirs();
                 }
+                chunk = new File(chunkDir,msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
+                try {
+                    System.out.println("Creating new chunk file and writing chunk.");
+                    chunk.createNewFile();
+                    FileOutputStream out = new FileOutputStream(chunk);
+                    out.write(msg.getBody());
+                    out.close();
+                    System.out.println("Finished storing chunk file 837645872365473456234");
+                    Header rspHeader = new Header("STORED", Constants.PROTOCOL_VERSION, peer.getServerID(),
+                            msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), Constants.REP_DEGREE_IGNORE);
+                    Message rsp = new Message(rspHeader,null);
+                    MulticastSocket socket = peer.getMC();
+                    DatagramPacket packet = new DatagramPacket(rsp.getBytes(), rsp.getBytes().length, peer.getMcAddress(), peer.getMcPort());
+                    Random rn = new Random();
+                    int randomDelay = rn.nextInt(Constants.delay + 1);
+                    Thread.sleep(randomDelay);
+                    socket.send(packet);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                break;
             case "STORED":
                 int actualRepDeg = 0;
                 ReplicationInfo repInfo = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
@@ -100,7 +107,7 @@ public class CommandHandler extends Thread {
                 String requestName = msg.getHeader().getFileId() + "_" + msg.getHeader().getChunkNo();
                 restoreRequests.add(requestName);
                 File dir = new File(Constants.FILE_PATH, msg.getHeader().getFileId());
-                File chunk = new File(dir, msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
+                chunk = new File(dir, msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
                 if(chunk.exists() && !chunk.isDirectory()) {
                     MulticastSocket dataSocket = peer.getMDR();
                     Random rn = new Random();
@@ -123,7 +130,7 @@ public class CommandHandler extends Thread {
                 }
                 break;
             case "CHUNK":
-
+                break;
             default:
                 System.out.println("Unrecognized command. Disregarding");
                 break;
