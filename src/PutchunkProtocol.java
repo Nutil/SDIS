@@ -58,7 +58,7 @@ public class PutchunkProtocol extends Thread {
             }
 
         } catch(Exception e) {
-
+            e.printStackTrace();
         }
 
     }
