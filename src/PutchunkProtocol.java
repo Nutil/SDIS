@@ -2,7 +2,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.DatagramPacket;
-import java.net.MulticastSocket;
 import java.util.Arrays;
 
 /**
@@ -20,20 +19,19 @@ public class PutchunkProtocol extends Thread {
     }
 
     public void run(){
-        //Get File to be saved. Ensures existance
-        File f = getLocalFile(fileName);
+        //Get File to be saved.
+        File f = peer.getLocalFile(fileName);
 
-        //Divide file into chunks and save them individually
         byte[] chunk = new byte[Constants.chunkSize];
         String hashedFileName = Constants.sha256(fileName);
 
+        //Divide file into chunks and save them individually
         try {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
             int chunkNumber = 0;
             int resends = 0;
-            int timeToSleep = 1000;
+            int timeToSleep = 100;
             int chunkRepDegree = 0;
-            System.out.println("Preparing to send chunks");
             int bytesRead;
             while((bytesRead = bis.read(chunk)) > -1 ) {
                 FileInfo.getInstance().addInfo(hashedFileName,chunkNumber,0,repDegree);
@@ -47,7 +45,7 @@ public class PutchunkProtocol extends Thread {
                     peer.getMDB().send(requestPacket);
 
                     //Await peer responses
-                    Thread.sleep(timeToSleep *(long) Math.pow(2, (double)resends));
+                    Thread.sleep(timeToSleep *(long) Math.pow(1, (double)resends));
                 }
 
                 resends = 0;
@@ -55,26 +53,8 @@ public class PutchunkProtocol extends Thread {
                 chunkNumber++;
                 chunk = new byte[Constants.chunkSize];
             }
-
         } catch(Exception e) {
             e.printStackTrace();
         }
-
-    }
-
-    /**
-     * Get a local file. Makes sure it exists and is not a directory
-     * @param fileName the name of the file
-     * @return the file
-     */
-    public File getLocalFile(String fileName) {
-        //Check if file exists
-        File f = new File(Constants.FILE_PATH + fileName);
-        if (!f.exists() || f.isDirectory()) {
-            System.err.println("Please make sure a file exists before you try to back it up");
-            return null;
-        }
-
-        return f;
     }
 }

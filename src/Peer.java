@@ -66,9 +66,18 @@ public class Peer {
 
         //Test handler
         if(args[1].equals("yes"))
-            testPeer.putFile("image.jpg", 1);
+            testPeer.putFile("teste1.txt", 1);
         else if(args[1].equals("restore"))
-            testPeer.restoreFile("image.jpg");
+            testPeer.restoreFile("teste1.txt");
+        //Sleep for a bit
+        /*try {
+            Thread.sleep(8000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        //Test deletion
+        testPeer.deleteFile("teste1.txt");*/
     }
 
 
@@ -217,6 +226,50 @@ public class Peer {
 
     public void removeRestoreRequest(RestoreFileProtocol restoreFileProtocol) {
         myRestoreRequests.remove(restoreFileProtocol);
+    }
+    /**
+     * Delete a file on the service net and locally
+     * @param fileName the name of the file to be deleted
+     */
+    public void deleteFile(String fileName) {
+        System.out.println("Starting file deletion protocol for file " + fileName);
+
+        DeleteFileProtocol fileDeleter = new DeleteFileProtocol(this, fileName);
+        fileDeleter.start();
+    }
+    /**
+     * Sends to the MC channel GETCHUNK message
+     * @param fileId specifies the id of the file
+     * @param chunkNo specifies the number of the chunk being retrieved
+     */
+    public void getChunk(String fileId, int chunkNo){
+        Header header = new Header("GETCHUNK","1.0",this.serverID,fileId,chunkNo,-1);
+        Message message = new Message(header, null);
+        DatagramPacket requestPacket = new DatagramPacket(message.getBytes(),message.getBytes().length, mcAddress, mcPort);
+        try {
+            System.out.println("Sending getchunk message");
+            MC.send(requestPacket);
+            System.out.println("Getchunk successfully sent");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * Get a local file. Makes sure it exists and is not a directory
+     * @param fileName the name of the file
+     * @return the file
+     */
+    public File getLocalFile(String fileName) {
+        //Check if file exists
+        File f = new File(Constants.FILE_PATH + fileName);
+        if (!f.exists() || f.isDirectory()) {
+            System.err.println("Please make sure a file exists before accessing it.");
+            return null;
+        }
+
+        return f;
     }
 }
 

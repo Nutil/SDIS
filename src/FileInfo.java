@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -35,4 +36,24 @@ public class FileInfo {
         return filesInfo.get(fileId + "_" + chunkNo);
     }
 
+    /**
+     * Removes all table chunks belonging to the specified file from the table
+     * @param fileID the fileID of the entries to be deleted
+     */
+    public void removeFileEntries(String fileID){
+        Iterator<String> it = filesInfo.keySet().iterator();
+
+        String chunkKey;
+        while(it.hasNext()){
+            chunkKey = it.next();
+
+            //Didn't match
+            if(!chunkKey.contains(fileID))
+                continue;
+
+            it.remove();
+        }
+
+        System.out.println("Finished removing table entries.");
+    }
 }
