@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
+import java.util.Arrays;
 
 /**
  * Created by Luís on 25/03/2016.
@@ -33,8 +34,10 @@ public class PutchunkProtocol extends Thread {
             int timeToSleep = 1000;
             int chunkRepDegree = 0;
             System.out.println("Preparing to send chunks");
-            while(bis.read(chunk) > -1 ) {
+            int bytesRead;
+            while((bytesRead = bis.read(chunk)) > -1 ) {
                 FileInfo.getInstance().addInfo(hashedFileName,chunkNumber,0,repDegree);
+                chunk = Arrays.copyOf(chunk,bytesRead);
                 System.out.println("Read first chunk. Sending chunk with size: " + chunk.length);
                 for(; resends < 5 && chunkRepDegree < repDegree; resends++) {
                     chunkRepDegree = FileInfo.getInstance().getInfo(hashedFileName,chunkNumber).getActualRepDegree();

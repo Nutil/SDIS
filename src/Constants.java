@@ -31,13 +31,4 @@ public class Constants {
         }
     }
 
-    public static byte[] trim(byte[] input){
-        int i = input.length;
-        while (i-- > 0 && input[i] == 0) {
-
-        }
-        byte[] output = new byte[i+1];
-        System.arraycopy(input, 0, output, 0, i+1);
-        return output;
-    }
 }

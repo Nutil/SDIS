@@ -1,6 +1,7 @@
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Arrays;
 
 /**
  * Created by Luís on 17/03/2016.
@@ -29,10 +30,9 @@ public class PackageHandler extends Thread {
             try {
                 byte[] packetData = new byte[Constants.PACKET_BUFFER_SIZE];
                 DatagramPacket receptionPacket = new DatagramPacket(packetData, packetData.length);
-                System.out.println("Awaiting packets on " + name);
                 mcSocket.receive(receptionPacket);
-                System.out.println("Received a packet on " + name + ". Calling command handler");
-                commandHandler.addCommand(Constants.trim(receptionPacket.getData()));
+                byte[] dataRead = Arrays.copyOf(receptionPacket.getData(),receptionPacket.getLength());
+                commandHandler.addCommand(dataRead);
             } catch (Exception e) {
                 e.printStackTrace();
             }

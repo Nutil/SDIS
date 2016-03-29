@@ -2,7 +2,6 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.*;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
@@ -67,9 +66,9 @@ public class Peer {
 
         //Test handler
         if(args[1].equals("yes"))
-            testPeer.putFile("teste1.txt", 1);
+            testPeer.putFile("image.jpg", 1);
         else if(args[1].equals("restore"))
-            testPeer.restoreFile("teste1.txt");
+            testPeer.restoreFile("image.jpg");
     }
 
 
@@ -208,10 +207,10 @@ public class Peer {
         restore.getNextChunk();
     }
 
-    public void receivedChunk(String fileId, int chunkNo, byte[] body) {
+    public void receivedChunk(String fileId, int chunkNo, byte[] data) {
         for(RestoreFileProtocol fileProtocol : myRestoreRequests) {
             if(fileProtocol.getFileId().equals(fileId)) {
-                fileProtocol.addBytes(chunkNo,Constants.trim(body));
+                fileProtocol.addBytes(chunkNo,data);
             }
         }
     }

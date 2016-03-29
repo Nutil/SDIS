@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -121,8 +122,8 @@ public class CommandHandler extends Thread {
                     byte[] chunkData = new byte[Constants.chunkSize];
                     try {
                         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
-                        bis.read(chunkData);
-                        chunkData = Constants.trim(chunkData);
+                        int bytesRead = bis.read(chunkData);
+                        chunkData = Arrays.copyOf(chunkData,bytesRead);
                         Header rpsHeader = new Header("CHUNK",Constants.PROTOCOL_VERSION,peer.getServerID(), msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),-1);
                         Message rsp = new Message(rpsHeader,chunkData);
                         Thread.sleep(randomDelay);
