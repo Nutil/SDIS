@@ -11,6 +11,7 @@ public class Constants {
     public static int chunkSize = 1000*64; // 64KB
     public static int delay = 400; // random delay for answering
     public static int REP_DEGREE_IGNORE = 999999; // Arbitrary value to put at rep degree for the packet when none is needed
+    public static int CHUNK_NO_IGNORE = 999999; // Arbitrary value to put at rep degree for the packet when none is needed
     public static String FILE_EXTENSION = ".chunk"; //Chunk file extension
 
 

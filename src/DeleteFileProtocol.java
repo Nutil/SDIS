@@ -31,7 +31,7 @@ public class DeleteFileProtocol extends Thread {
 
         //Send DELETE command 5 times, once per second
         for(; resends < 5; resends++){
-            Header messageHeader = new Header("DELETE", Constants.PROTOCOL_VERSION, peer.getServerID(), hashedFileName, -1, -1);
+            Header messageHeader = new Header("DELETE", Constants.PROTOCOL_VERSION, peer.getServerID(), hashedFileName, Constants.CHUNK_NO_IGNORE, Constants.REP_DEGREE_IGNORE);
             Message msg = new Message(messageHeader, emptyBody);
             DatagramPacket requestPacket = new DatagramPacket(msg.getBytes(), msg.getBytes().length, peer.getMcAddress(), peer.getMcPort());
             try {
