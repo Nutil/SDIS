@@ -7,12 +7,12 @@ import java.util.Arrays;
 /**
  * Created by Luís on 25/03/2016.
  */
-public class PutchunkProtocol extends Thread {
+public class PutFileProtocol extends Thread {
     private Peer peer;
     private String fileName;
     private int repDegree;
 
-    public PutchunkProtocol(Peer peer, String fileName, int repDegree){
+    public PutFileProtocol(Peer peer, String fileName, int repDegree){
         this.peer = peer;
         this.fileName = fileName;
         this.repDegree = repDegree;

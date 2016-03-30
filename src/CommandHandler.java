@@ -60,7 +60,6 @@ public class CommandHandler extends Thread {
 
     private String handleCommand(byte[] commandPacket){
         Message msg = new Message(commandPacket);
-        File chunk;
         String requestName = msg.getHeader().getFileId() + "_" + msg.getHeader().getChunkNo();
         System.out.println(msg.getHeader().getMessageType());
         switch (msg.getHeader().getMessageType()){
@@ -92,6 +91,12 @@ public class CommandHandler extends Thread {
                     break;
 
                 handleDelete(msg);
+                break;
+            case "REMOVED":
+                if(msg.getHeader().getSenderId() == peer.getServerID())
+                    break;
+
+                handleRemove(msg);
                 break;
             default:
                 System.out.println("Unrecognized command. Disregarding");
@@ -211,5 +216,43 @@ public class CommandHandler extends Thread {
         }
         f.delete();
 
+    }
+
+    public void handleRemove(Message msg){
+        File chunk = new File(Constants.FILE_PATH + peer.getServerID() + File.separator + msg.getHeader().getFileId()
+                , "" + msg.getHeader().getChunkNo());
+        if(!chunk.exists()){
+            return;
+        }
+        try {
+            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
+            byte [] chunkData = new byte[Constants.chunkSize];
+            int timeToSleep = 100;
+            int chunkRepDegree = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo()).getActualRepDegree();
+            int bytesRead = bis.read(chunkData);
+            chunkData = Arrays.copyOf(chunkData, bytesRead);
+
+            Random rn = new Random();
+            int randomDelay = rn.nextInt(Constants.delay + 1);
+            Thread.sleep(randomDelay);
+
+            ReplicationInfo chunkInfo = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
+
+            if(chunkInfo.getActualRepDegree() < chunkInfo.getDesiredRepDegree()){
+                for(int resends = 0; resends < 5 && chunkRepDegree < chunkInfo.getDesiredRepDegree(); resends++) {
+                    chunkRepDegree = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo()).getActualRepDegree();
+                    Header messageHeader = new Header("PUTCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(), msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), chunkInfo.getDesiredRepDegree());
+                    Message response = new Message(messageHeader, chunkData);
+                    DatagramPacket requestPacket = new DatagramPacket(response.getBytes(), response.getBytes().length, peer.getMdbAddress(), peer.getMdbPort());
+                    peer.getMDB().send(requestPacket);
+
+                    //Await peer responses
+                    Thread.sleep(timeToSleep *(long) Math.pow(1, (double)resends));
+                }
+
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 }

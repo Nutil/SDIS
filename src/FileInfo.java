@@ -56,4 +56,9 @@ public class FileInfo {
 
         System.out.println("Finished removing table entries.");
     }
+
+    public void updateInfo(String fileId, int chunkNo) {
+        ReplicationInfo info = filesInfo.get(fileId+"_"+chunkNo);
+        info.setActualRepDegree(info.getActualRepDegree() - 1);
+    }
 }

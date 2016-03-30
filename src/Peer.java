@@ -206,7 +206,7 @@ public class Peer {
     public void putFile(String fileName, int repDegree) {
         System.out.println("Starting backup protocol for file " + fileName);
 
-        PutchunkProtocol chunkPutter = new PutchunkProtocol(this, fileName, repDegree);
+        PutFileProtocol chunkPutter = new PutFileProtocol(this, fileName, repDegree);
         chunkPutter.start();
     }
 
