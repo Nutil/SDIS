@@ -70,14 +70,14 @@ public class Peer {
         else if(args[1].equals("restore"))
             testPeer.restoreFile("teste1.txt");
         //Sleep for a bit
-        /*try {
-            Thread.sleep(8000);
+        try {
+            Thread.sleep(30000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         //Test deletion
-        testPeer.deleteFile("teste1.txt");*/
+        testPeer.deleteFile("teste1.txt");
     }
 
 

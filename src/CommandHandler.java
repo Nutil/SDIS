@@ -197,13 +197,19 @@ public class CommandHandler extends Thread {
         FileInfo theInfo = FileInfo.getInstance();
         theInfo.removeFileEntries(msg.getHeader().getFileId());
 
-        File f = new File(Constants.FILE_PATH + msg.getHeader().getFileId());
+        File f = new File(Constants.FILE_PATH + peer.getServerID(),msg.getHeader().getFileId());
         if(!f.exists())
             return;
         if(!f.isDirectory()){
             System.err.println("Error: file exists but is not a directory");
             return;
         }
+
+        File[] dirFiles = f.listFiles();
+        for (File file : dirFiles) {
+            file.delete();
+        }
+        f.delete();
 
     }
 }
