@@ -22,6 +22,7 @@ public class Header {
         if(fields.length < 5 || fields.length > 6){
             throw new IllegalArgumentException("Invalid number of arguments");
         }
+
         messageType = fields[0];
         version = fields[1];
         senderId = Integer.parseInt(fields[2]);

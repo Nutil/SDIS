@@ -47,7 +47,7 @@ public class CommandHandler extends Thread {
             }
 
             //Queue isn't empty, handle that command
-            System.out.println("Working on queued commands. Commands queue size: " + commands.size());
+            //System.out.println("Working on queued commands. Commands queue size: " + commands.size());
             byte[] command = commands.poll();
             new Thread(new Runnable() {
                 @Override
@@ -179,7 +179,7 @@ public class CommandHandler extends Thread {
                 BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
                 int bytesRead = bis.read(chunkData);
                 chunkData = Arrays.copyOf(chunkData,bytesRead);
-                Header rpsHeader = new Header("CHUNK",Constants.PROTOCOL_VERSION,peer.getServerID(), msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),-1);
+                Header rpsHeader = new Header("CHUNK",Constants.PROTOCOL_VERSION,peer.getServerID(), msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),Constants.REP_DEGREE_IGNORE);
                 Message rsp = new Message(rpsHeader,chunkData);
                 Thread.sleep(randomDelay);
                 if(restoreRequests.remove(requestName)){
