@@ -17,16 +17,23 @@ public class Header {
     private int replicationDegree;
 
     public Header(String message) throws  IllegalArgumentException{
-        String[] fields = message.split(" ");
+        String[] fields = message.split("\\s+");
+
+        if(fields.length < 5 || fields.length > 6){
+            throw new IllegalArgumentException("Invalid number of arguments");
+        }
         messageType = fields[0];
         version = fields[1];
         senderId = Integer.parseInt(fields[2]);
         fileId = fields[3];
-        chunkNo = Integer.parseInt(fields[4]);
+        if(fields.length >= 5)
+            chunkNo = Integer.parseInt(fields[4]);
+        else
+            chunkNo = Constants.CHUNK_NO_IGNORE;
         if(fields.length == 6)
             replicationDegree = Integer.parseInt(fields[5]);
         else
-            replicationDegree = -1;
+            replicationDegree = Constants.REP_DEGREE_IGNORE;
 
         if(!Arrays.asList(types).contains(messageType))
             throw new IllegalArgumentException("Invalid <MessageType>");
@@ -78,8 +85,11 @@ public class Header {
     }
 
     public byte[] getBytes(){
-        String msg = messageType + " " + version + " " + senderId + " " + fileId + " " + chunkNo + " ";
-        if(replicationDegree != -1){
+        String msg = messageType + " " + version + " " + senderId + " " + fileId + " ";
+        if(chunkNo != Constants.CHUNK_NO_IGNORE){
+            msg += chunkNo + " ";
+        }
+        if(replicationDegree != Constants.REP_DEGREE_IGNORE){
             msg += replicationDegree + " ";
         }
         return msg.getBytes();

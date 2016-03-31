@@ -2,6 +2,10 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.*;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
@@ -9,7 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Represents a Server Peer. Contains main method
  */
 
-public class Peer {
+public class Peer implements PeerInterface{
 
 
     private int serverID;
@@ -42,6 +46,7 @@ public class Peer {
      */
     public static void main(String[] args) {
 
+
         int serverID = Integer.parseInt(args[0]);
         int mcPort = 4000;
         int mdbPort = 4001;
@@ -58,26 +63,19 @@ public class Peer {
         }
 
         Peer testPeer = new Peer(serverID, mcPort, mdbPort, mdrPort, mcAddress, mdbAddress, mdrAddress);
+        try {
+            PeerInterface stub = (PeerInterface) UnicastRemoteObject.exportObject(testPeer, serverID);
+            Registry registry = LocateRegistry.createRegistry(serverID);
+            registry.rebind("Peer",stub);
+        } catch (RemoteException e) {
+            System.err.println("Cannot export RMI Object");
+            e.printStackTrace();
+        }
 
         CommandHandler.getInstance(testPeer);
         testPeer.joinMulticastGroups();
 
         testPeer.startHandlers();
-
-        //Test handler
-        if(args[1].equals("yes"))
-            testPeer.putFile("teste1.txt", 1);
-        else if(args[1].equals("restore"))
-            testPeer.restoreFile("teste1.txt");
-        //Sleep for a bit
-        try {
-            Thread.sleep(30000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        //Test deletion
-        testPeer.deleteFile("teste1.txt");
     }
 
 
@@ -270,6 +268,11 @@ public class Peer {
         }
 
         return f;
+    }
+
+    //TODO reclaim space protocol
+    public void reclaimSpace(int totalSpace){
+
     }
 }
 
