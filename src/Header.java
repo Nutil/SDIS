@@ -19,7 +19,7 @@ public class Header {
     public Header(String message) throws  IllegalArgumentException{
         String[] fields = message.split("\\s+");
 
-        if(fields.length < 5 || fields.length > 6){
+        if(fields.length < 4 || fields.length > 6){
             throw new IllegalArgumentException("Invalid number of arguments");
         }
 
@@ -31,6 +31,7 @@ public class Header {
             chunkNo = Integer.parseInt(fields[4]);
         else
             chunkNo = Constants.CHUNK_NO_IGNORE;
+
         if(fields.length == 6)
             replicationDegree = Integer.parseInt(fields[5]);
         else
