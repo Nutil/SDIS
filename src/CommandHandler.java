@@ -14,7 +14,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class CommandHandler extends Thread {
     private static CommandHandler commandHandler = null;
-    private LinkedList<byte[]> commands;
+    private LinkedList<byte[]> commands; //TODO Blocking queue inst LinkedBlockingQueue
     private LinkedBlockingQueue<String> restoreRequests;
     private static Peer peer;
 
