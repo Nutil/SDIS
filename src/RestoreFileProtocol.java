@@ -36,6 +36,8 @@ public class RestoreFileProtocol{
     }
 
     public void addBytes(int chunkNo, byte[] fileData){
+        if(chunkNo != this.chunkNo)
+            return;
         chunks.put(chunkNo,fileData);
         if (fileData.length != Constants.chunkSize){
             peer.removeRestoreRequest(this);

@@ -48,16 +48,16 @@ public class Peer implements PeerInterface{
 
 
         int serverID = Integer.parseInt(args[0]);
-        int mcPort = 4000;
-        int mdbPort = 4001;
-        int mdrPort = 4002;
+        int mcPort = 8881;
+        int mdbPort = 8882;
+        int mdrPort = 8883;
         InetAddress mcAddress = null;
         InetAddress mdbAddress = null;
         InetAddress mdrAddress = null;
         try {
-            mcAddress = InetAddress.getByName("236.1.1.2");
-            mdbAddress = InetAddress.getByName("236.1.1.2");
-            mdrAddress = InetAddress.getByName("236.1.1.2");
+            mcAddress = InetAddress.getByName("227.0.1.1");
+            mdbAddress = InetAddress.getByName("227.0.2.2");
+            mdrAddress = InetAddress.getByName("227.0.3.3");
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
