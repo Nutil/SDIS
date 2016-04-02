@@ -13,6 +13,7 @@ public class TestApp {
     public static void main(String[] args) {
         if (args.length < 3 || args.length > 4) {
             System.err.println("Usage: java TestApp <peer_ap> <sub_protocol> <opnd_1> <opnd_2>");
+            System.exit(-1);
         }
 
         String port = args[0];

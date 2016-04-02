@@ -48,6 +48,9 @@ public class Peer implements PeerInterface{
 
 
         int serverID = Integer.parseInt(args[0]);
+        String mcInfo = args[1];
+        String mdbInfo = args[2];
+        String mdrInfo = args[3];
         int mcPort = 8881;
         int mdbPort = 8882;
         int mdrPort = 8883;

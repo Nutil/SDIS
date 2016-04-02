@@ -87,6 +87,10 @@ public class Header {
     }
 
     public byte[] getBytes(){
+        return toString().getBytes();
+    }
+
+    public String toString(){
         String msg = messageType + " " + version + " " + senderId + " " + fileId + " ";
         if(chunkNo != Constants.CHUNK_NO_IGNORE){
             msg += chunkNo + " ";
@@ -94,7 +98,7 @@ public class Header {
         if(replicationDegree != Constants.REP_DEGREE_IGNORE){
             msg += replicationDegree + " ";
         }
-        return msg.getBytes();
+        return msg;
     }
 
 }

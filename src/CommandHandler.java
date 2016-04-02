@@ -36,20 +36,24 @@ public class CommandHandler extends Thread {
 
     public void run(){
         while(true){
-            byte[] command = commands.poll();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    String handledCommand = handleCommand(command);
-                }
-            }).start();
+            try {
+                byte[] command = commands.take();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String handledCommand = handleCommand(command);
+                    }
+                }).start();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private String handleCommand(byte[] commandPacket){
         Message msg = new Message(commandPacket);
         String requestName = msg.getHeader().getFileId() + "_" + msg.getHeader().getChunkNo();
-        System.out.println(msg.getHeader().getMessageType());
+        System.out.println("MESSAGE: " + msg.getHeader().toString());
         switch (msg.getHeader().getMessageType()){
             case "PUTCHUNK":
                 if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
@@ -98,7 +102,11 @@ public class CommandHandler extends Thread {
      * Adds a command packet to the priority queue
      */
     public void addCommand(byte[] command) {
-        commands.add(command);
+        try {
+            commands.put(command);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
