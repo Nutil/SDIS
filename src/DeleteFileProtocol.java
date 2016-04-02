@@ -19,27 +19,22 @@ public class DeleteFileProtocol extends Thread {
     public void run() {
         File f = peer.getLocalFile(fileName);
 
-        String hashedFileName = Constants.sha256(fileName);
+        String hashedFileName = MyFiles.getInstance().getFileId(fileName);
 
         FileInfo filesTable = FileInfo.getInstance();
 
         filesTable.removeFileEntries(hashedFileName);
+        MyFiles.getInstance().removeInfo(fileName);
 
-        int resends = 0;
-        int timeToSleep = 100;
         byte[] emptyBody = null;
 
-        //Send DELETE command 5 times, once per second
-        for(; resends < 5; resends++){
-            Header messageHeader = new Header("DELETE", Constants.PROTOCOL_VERSION, peer.getServerID(), hashedFileName, Constants.CHUNK_NO_IGNORE, Constants.REP_DEGREE_IGNORE);
-            Message msg = new Message(messageHeader, emptyBody);
-            DatagramPacket requestPacket = new DatagramPacket(msg.getBytes(), msg.getBytes().length, peer.getMcAddress(), peer.getMcPort());
-            try {
-                peer.getMC().send(requestPacket);
-                Thread.sleep(timeToSleep);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        Header messageHeader = new Header("DELETE", Constants.PROTOCOL_VERSION, peer.getServerID(), hashedFileName, Constants.CHUNK_NO_IGNORE, Constants.REP_DEGREE_IGNORE);
+        Message msg = new Message(messageHeader, emptyBody);
+        DatagramPacket requestPacket = new DatagramPacket(msg.getBytes(), msg.getBytes().length, peer.getMcAddress(), peer.getMcPort());
+        try {
+            peer.getMC().send(requestPacket);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }

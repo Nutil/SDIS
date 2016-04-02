@@ -53,7 +53,6 @@ public class PutFileProtocol extends Thread {
                         int timeToSleep = 1000;
                         int tries = 0;
                         for(; tries < 5 && chunkRepDegree < repDegree; tries++) {
-                            chunkRepDegree = FileInfo.getInstance().getInfo(hashedFileName, finalChunkNumber).getActualRepDegree();
                             Header messageHeader = new Header("PUTCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(), hashedFileName, finalChunkNumber, repDegree);
                             Message msg = new Message(messageHeader, finalChunk);
                             DatagramPacket requestPacket = new DatagramPacket(msg.getBytes(), msg.getBytes().length, peer.getMdbAddress(), peer.getMdbPort());
@@ -67,6 +66,7 @@ public class PutFileProtocol extends Thread {
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+                            chunkRepDegree = FileInfo.getInstance().getInfo(hashedFileName, finalChunkNumber).getActualRepDegree();
                         }
                     }
                 }).start();

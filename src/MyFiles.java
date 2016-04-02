@@ -35,4 +35,7 @@ public class MyFiles {
         return (int)chunks;
     }
 
+    public void removeInfo(String fileName) {
+        metadata.remove(fileName);
+    }
 }

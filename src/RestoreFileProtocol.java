@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RestoreFileProtocol implements Runnable{
     private Peer peer;
-    private int chunkNo;
     private String fileName;
     private String fileId;
     private int totalChunks;
@@ -20,7 +19,6 @@ public class RestoreFileProtocol implements Runnable{
         this.peer = peer;
         this.fileId = fileId;
         this.totalChunks = totalChunks;
-        this.chunkNo = 0;
         this.fileName = filename;
         this.chunks = new ConcurrentHashMap<>();
     }
@@ -65,11 +63,12 @@ public class RestoreFileProtocol implements Runnable{
 
     @Override
     public void run() {
-        for (; chunkNo < totalChunks; chunkNo++){
+        for (int chunkNo = 0; chunkNo < totalChunks; chunkNo++){
+            final int finalChunkNo = chunkNo;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    Header requestHeader = new Header("GETCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(),fileId,chunkNo,Constants.REP_DEGREE_IGNORE);
+                    Header requestHeader = new Header("GETCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(),fileId, finalChunkNo,Constants.REP_DEGREE_IGNORE);
                     Message request = new Message(requestHeader,null);
                     DatagramPacket packet = new DatagramPacket(request.getBytes(),request.getBytes().length,peer.getMcAddress(),peer.getMcPort());
                     try {
