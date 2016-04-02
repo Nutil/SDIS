@@ -203,15 +203,14 @@ public class Peer implements PeerInterface{
      */
     public void putFile(String fileName, int repDegree) {
         System.out.println("Starting backup protocol for file " + fileName);
-
         PutFileProtocol chunkPutter = new PutFileProtocol(this, fileName, repDegree);
         chunkPutter.start();
     }
 
     public void restoreFile(String fileName){
-        RestoreFileProtocol restore = new RestoreFileProtocol(this,fileName,Constants.sha256(fileName));
+        RestoreFileProtocol restore = new RestoreFileProtocol(this,fileName,MyFiles.getInstance().getFileId(fileName), MyFiles.getInstance().getNumberOfChunks(fileName));
         myRestoreRequests.add(restore);
-        restore.getNextChunk();
+        new Thread(restore).start();
     }
 
     public void receivedChunk(String fileId, int chunkNo, byte[] data) {

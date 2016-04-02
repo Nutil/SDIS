@@ -15,11 +15,11 @@ public class TestApp {
             System.err.println("Usage: java TestApp <peer_ap> <sub_protocol> <opnd_1> <opnd_2>");
         }
 
-        String RMIObject = args[0];
+        String port = args[0];
         String protocol = args[1];
         String filename = args[2];
         try {
-            Registry registry = LocateRegistry.getRegistry(Integer.parseInt(RMIObject));
+            Registry registry = LocateRegistry.getRegistry(Integer.parseInt(port));
             PeerInterface peer = (PeerInterface) registry.lookup("Peer");
             switch (protocol) {
                 case "BACKUP":

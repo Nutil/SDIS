@@ -14,13 +14,13 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class CommandHandler extends Thread {
     private static CommandHandler commandHandler = null;
-    private LinkedList<byte[]> commands; //TODO Blocking queue inst LinkedBlockingQueue
+    private LinkedBlockingQueue<byte[]> commands;
     private LinkedBlockingQueue<String> restoreRequests;
     private static Peer peer;
 
     private CommandHandler(Peer peer){
         this.peer = peer;
-        commands = new LinkedList<>();
+        commands = new LinkedBlockingQueue<>();
         restoreRequests = new LinkedBlockingQueue<>();
     }
 
@@ -36,18 +36,6 @@ public class CommandHandler extends Thread {
 
     public void run(){
         while(true){
-            //Sleep thread if no commands to be handled
-            if(commands.size() == 0){
-                try {
-                    Thread.sleep(50);
-                    continue;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            //Queue isn't empty, handle that command
-            //System.out.println("Working on queued commands. Commands queue size: " + commands.size());
             byte[] command = commands.poll();
             new Thread(new Runnable() {
                 @Override
@@ -126,12 +114,10 @@ public class CommandHandler extends Thread {
         }
         chunk = new File(chunkDir,msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
         try {
-            System.out.println("Creating new chunk file and writing chunk.");
             chunk.createNewFile();
             FileOutputStream out = new FileOutputStream(chunk);
             out.write(msg.getBody());
             out.close();
-            System.out.println("Finished storing chunk file 837645872365473456234"); // WTF???
             Header rspHeader = new Header("STORED", Constants.PROTOCOL_VERSION, peer.getServerID(),
                     msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), Constants.REP_DEGREE_IGNORE);
             Message rsp = new Message(rspHeader,null);
@@ -198,7 +184,6 @@ public class CommandHandler extends Thread {
      * @param msg the Delete message
      */
     public void handleDelete(Message msg){
-        System.out.println("Received delete command. Deleting local table entries...");
         FileInfo theInfo = FileInfo.getInstance();
         theInfo.removeFileEntries(msg.getHeader().getFileId());
 

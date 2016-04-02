@@ -8,38 +8,27 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Diogo Guarda on 28/03/2016.
  */
-public class RestoreFileProtocol{
+public class RestoreFileProtocol implements Runnable{
     private Peer peer;
     private int chunkNo;
     private String fileName;
     private String fileId;
+    private int totalChunks;
     private ConcurrentHashMap<Integer,byte[]> chunks;
 
-    public RestoreFileProtocol(Peer peer, String filename, String fileId) {
+    public RestoreFileProtocol(Peer peer, String filename, String fileId, int totalChunks) {
         this.peer = peer;
         this.fileId = fileId;
-        this.chunkNo = -1;
+        this.totalChunks = totalChunks;
+        this.chunkNo = 0;
         this.fileName = filename;
         this.chunks = new ConcurrentHashMap<>();
     }
 
-    public void getNextChunk(){
-        chunkNo++;
-        Header requestHeader = new Header("GETCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(),fileId,chunkNo,Constants.REP_DEGREE_IGNORE);
-        Message request = new Message(requestHeader,null);
-        DatagramPacket packet = new DatagramPacket(request.getBytes(),request.getBytes().length,peer.getMcAddress(),peer.getMcPort());
-        try {
-            peer.getMC().send(packet);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     public void addBytes(int chunkNo, byte[] fileData){
-        if(chunkNo != this.chunkNo)
-            return;
         chunks.put(chunkNo,fileData);
-        if (fileData.length != Constants.chunkSize){
+        if (chunks.size() == totalChunks){
             peer.removeRestoreRequest(this);
             new Thread(new Runnable() {
                 @Override
@@ -49,9 +38,6 @@ public class RestoreFileProtocol{
             }).start();
 
         }
-        else{
-            this.getNextChunk();
-        }
     }
 
     private void createFile() {
@@ -59,7 +45,6 @@ public class RestoreFileProtocol{
         File file = new File(dir, this.fileName);
 
         try {
-            System.out.println("BOA CENA");
             dir.mkdirs();
             file.createNewFile();
             FileOutputStream out = new FileOutputStream(file);
@@ -68,13 +53,33 @@ public class RestoreFileProtocol{
                 out.write(data);
             }
             out.close();
+            System.out.println("File restored! Check: " + file.getAbsolutePath());
         } catch (IOException e) {
             System.out.println("A file with the same name exist in your filesystem");
-            e.printStackTrace();
         }
     }
 
     public String getFileId() {
         return fileId;
+    }
+
+    @Override
+    public void run() {
+        for (; chunkNo < totalChunks; chunkNo++){
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Header requestHeader = new Header("GETCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(),fileId,chunkNo,Constants.REP_DEGREE_IGNORE);
+                    Message request = new Message(requestHeader,null);
+                    DatagramPacket packet = new DatagramPacket(request.getBytes(),request.getBytes().length,peer.getMcAddress(),peer.getMcPort());
+                    try {
+                        peer.getMC().send(packet);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+
     }
 }
