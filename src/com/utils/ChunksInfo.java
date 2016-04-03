@@ -106,7 +106,9 @@ public class ChunksInfo implements Serializable{
     public synchronized void updateInfo(String fileId, int chunkNo) {
         synchronized (filesInfo) {
             ReplicationInfo info = filesInfo.get(new Chunk(chunkNo,fileId));
-            info.setActualRepDegree(info.getActualRepDegree() - 1);
+            if(info!= null){
+                info.setActualRepDegree(info.getActualRepDegree() - 1);
+            }
         }
         saveClass();
     }
@@ -114,7 +116,9 @@ public class ChunksInfo implements Serializable{
     public synchronized void addActualDegree(String fileId, int chunkNo) {
         synchronized (filesInfo) {
             ReplicationInfo info = filesInfo.get(new Chunk(chunkNo,fileId));
-            info.setActualRepDegree(info.getActualRepDegree() + 1);
+            if(info!= null){
+                info.setActualRepDegree(info.getActualRepDegree() + 1);
+            }
         }
         saveClass();
     }
