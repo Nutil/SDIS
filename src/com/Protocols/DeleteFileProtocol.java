@@ -25,6 +25,8 @@ public class DeleteFileProtocol extends Thread {
 
 
         ChunksInfo filesTable = ChunksInfo.getInstance();
+        filesTable.removeFileEntries(hashedFileName);
+        MyFiles.getInstance().removeInfo(fileName);
 
         for(int i = 0; i < 3; i++){
             byte[] emptyBody = null;
@@ -41,9 +43,6 @@ public class DeleteFileProtocol extends Thread {
                 break;
             }
         }
-
-        filesTable.removeFileEntries(hashedFileName);
-        MyFiles.getInstance().removeInfo(fileName);
 
     }
 }

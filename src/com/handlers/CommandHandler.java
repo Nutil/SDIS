@@ -198,6 +198,7 @@ public class CommandHandler extends Thread {
                 Header rpsHeader = new Header("CHUNK",Constants.PROTOCOL_VERSION,peer.getServerID(), msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),Constants.REP_DEGREE_IGNORE);
                 Message rsp = new Message(rpsHeader,chunkData);
                 Thread.sleep(randomDelay);
+                bis.close();
                 if(restoreRequests.remove(requestName)){
                     DatagramPacket chunkPacket = new DatagramPacket(rsp.getBytes(),rsp.getBytes().length, peer.getMdrAddress(), peer.getMdrPort());
                     peer.getMDR().send(chunkPacket);

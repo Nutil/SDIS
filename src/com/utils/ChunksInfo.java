@@ -97,7 +97,7 @@ public class ChunksInfo implements Serializable{
                 if (!chunkKey.getFileId().equals(fileID))
                     continue;
 
-                it.remove();
+                filesInfo.remove(chunkKey);
             }
         }
         saveClass();
