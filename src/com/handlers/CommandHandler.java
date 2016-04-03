@@ -143,7 +143,13 @@ public class CommandHandler extends Thread {
             Random rn = new Random();
             int randomDelay = rn.nextInt(Constants.delay + 1);
             Thread.sleep(randomDelay);
-            socket.send(packet);
+            ReplicationInfo info = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
+            if(info != null && info.getActualRepDegree() < info.getDesiredRepDegree()){
+                socket.send(packet);
+            }
+            else{
+                chunk.delete();
+            }
         } catch (IOException e) {
             System.err.println("Error: Couldn't create chunk file");
         } catch (InterruptedException e) {
