@@ -240,7 +240,6 @@ public class CommandHandler extends Thread {
             return;
         }
         ReplicationInfo c = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
-        System.out.println(c.getActualRepDegree());
         ChunksInfo.getInstance().updateInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
         try {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
@@ -255,7 +254,6 @@ public class CommandHandler extends Thread {
             Thread.sleep(randomDelay);
 
             ReplicationInfo chunkInfo = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
-            System.out.println(chunkInfo.getActualRepDegree());
             if(chunkInfo.getActualRepDegree() < chunkInfo.getDesiredRepDegree()){
                 for(int resends = 0; resends < 5 && chunkRepDegree < chunkInfo.getDesiredRepDegree(); resends++) {
                     chunkRepDegree = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo()).getActualRepDegree();

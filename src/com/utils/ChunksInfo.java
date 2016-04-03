@@ -126,4 +126,22 @@ public class ChunksInfo implements Serializable{
     public ConcurrentHashMap<Chunk, ReplicationInfo> getOrderedFiles() {
         return filesInfo;
     }
+
+    public boolean check(String hashedFileName) {
+        synchronized (filesInfo){
+            Iterator<Chunk> it = filesInfo.keySet().iterator();
+
+            Chunk chunkKey;
+            while (it.hasNext()) {
+                chunkKey = it.next();
+
+                //Didn't match
+                if (chunkKey.getFileId().equals(hashedFileName)){
+                    if(filesInfo.get(chunkKey).getActualRepDegree() != 0)
+                        return false;
+                }
+            }
+        }
+        return true;
+    }
 }
