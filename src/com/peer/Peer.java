@@ -291,12 +291,31 @@ public class Peer implements PeerInterface {
                         String filename = f.getName();
                         int pos = filename.lastIndexOf(".");
                         int chunkNo = Integer.parseInt(filename.substring(0, pos));
-                        f.delete();
-                        new Thread(new RemoveChunkProtocol(dir.getName(),chunkNo, this)).start();
-                        if (this.totalFreeSpace >= getTotalChunksSize()) {
-                            return;
+                        ReplicationInfo rep = ChunksInfo.getInstance().getInfo(dir.getName(),chunkNo);
+                        synchronized(rep){
+                            if(rep != null){
+                                if(rep.getActualRepDegree() >= rep.getActualRepDegree()){
+                                    new Thread(new RemoveChunkProtocol(dir.getName(),chunkNo, this)).start();
+                                    if (this.totalFreeSpace >= getTotalChunksSize()) {
+                                        return;
+                                    }
+                                    f.delete();
+                                }
+                            }
                         }
-                        f.delete();
+                    }
+                    files = dir.listFiles();
+                    if (this.totalFreeSpace < getTotalChunksSize()) {
+                        for (File f: files) {
+                            String filename = f.getName();
+                            int pos = filename.lastIndexOf(".");
+                            int chunkNo = Integer.parseInt(filename.substring(0, pos));
+                            new Thread(new RemoveChunkProtocol(dir.getName(),chunkNo, this)).start();
+                            if (this.totalFreeSpace >= getTotalChunksSize()) {
+                                return;
+                            }
+                            f.delete();
+                        }
                     }
                 }
             }

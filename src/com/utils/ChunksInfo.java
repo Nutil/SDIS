@@ -123,7 +123,7 @@ public class ChunksInfo implements Serializable{
         saveClass();
     }
 
-    public ConcurrentHashMap<Chunk, ReplicationInfo> getFilesInfo() {
+    public ConcurrentHashMap<Chunk, ReplicationInfo> getOrderedFiles() {
         return filesInfo;
     }
 }
