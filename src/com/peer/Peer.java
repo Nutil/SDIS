@@ -16,8 +16,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -29,7 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Peer implements PeerInterface {
 
 
-    private long totalSpace; // Total space that the peer may use;
+    private long totalFreeSpace; // Total space that the peer may use;
     private int serverID;
     /**
      * The multicast port of the corresponding socket
@@ -121,7 +119,7 @@ public class Peer implements PeerInterface {
         this.mdbAddress = mdbAddress;
         this.mdrAddress = mdrAddress;
         this.myRestoreRequests = new LinkedBlockingQueue<>();
-        this.totalSpace = Constants.PEER_TOTAL_SPACE;
+        this.totalFreeSpace = Constants.PEER_TOTAL_SPACE;
     }
 
     /**
@@ -276,41 +274,31 @@ public class Peer implements PeerInterface {
     }
 
     public void reclaimSpace(int totalSpace){
-        if(this.totalSpace >= totalSpace){
-            this.totalSpace -= totalSpace;
+        if(this.totalFreeSpace >= totalSpace){
+            this.totalFreeSpace -= totalSpace;
         }
         else{
-            this.totalSpace = 0;
+            this.totalFreeSpace = 0;
         }
         long total = getTotalChunksSize();
-        System.out.println("NEW TOTAL SPACE: " + this.totalSpace);
+        System.out.println("NEW TOTAL SPACE: " + this.totalFreeSpace);
         System.out.println("CURRENT CHUNKS TOTAL SIZE: " +  total);
-        if(this.totalSpace < total){
-            ConcurrentHashMap<Chunk, ReplicationInfo> chunksInfo = ChunksInfo.getInstance().getFilesInfo();
-            Enumeration<Chunk> enumKey = chunksInfo.keys();
-            while(enumKey.hasMoreElements()) {
-                Chunk key = enumKey.nextElement();
-                ReplicationInfo val = chunksInfo.get(key);
-                if (val.getActualRepDegree() > val.getDesiredRepDegree()){
-                    File dir = new File(Constants.FILE_PATH + serverID,key.getFileId());
-                    File file = new File(dir,key.getChunkNo()+ Constants.FILE_EXTENSION);
-                    file.delete();
-                    new Thread(new RemoveChunkProtocol(key.getFileId(),key.getChunkNo(),this)).start();
-                }
-                if(this.totalSpace > getTotalChunksSize()){
-                    return;
-                }
-            }
-            enumKey = chunksInfo.keys();
-            if(this.totalSpace > getTotalChunksSize()){
-                while(enumKey.hasMoreElements()) {
-                    Chunk key = enumKey.nextElement();
-                    File dir = new File(Constants.FILE_PATH + serverID,key.getFileId());
-                    File file = new File(dir,key.getChunkNo()+ Constants.FILE_EXTENSION);
-                    file.delete();
-                    new Thread(new RemoveChunkProtocol(key.getFileId(),key.getChunkNo(),this)).start();
-                    if(this.totalSpace > getTotalChunksSize()){
-                        return;
+        if(this.totalFreeSpace < total){
+            File server = new File(Constants.FILE_PATH + serverID);
+            File[] dirs = server.listFiles();
+            for (File dir:dirs) {
+                if(dir.isDirectory() && !dir.getName().equals("restored")){
+                    File[] files = dir.listFiles();
+                    for (File f: files) {
+                        String filename = f.getName();
+                        int pos = filename.lastIndexOf(".");
+                        int chunkNo = Integer.parseInt(filename.substring(0, pos));
+                        f.delete();
+                        new Thread(new RemoveChunkProtocol(dir.getName(),chunkNo, this)).start();
+                        if (this.totalFreeSpace >= getTotalChunksSize()) {
+                            return;
+                        }
+                        f.delete();
                     }
                 }
             }
@@ -340,7 +328,7 @@ public class Peer implements PeerInterface {
     }
 
     public long getTotalFreeSpace() {
-        return totalSpace;
+        return totalFreeSpace;
     }
 }
 

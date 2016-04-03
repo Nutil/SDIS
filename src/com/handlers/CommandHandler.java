@@ -232,7 +232,7 @@ public class CommandHandler extends Thread {
         try {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
             byte [] chunkData = new byte[Constants.chunkSize];
-            int timeToSleep = 100;
+            int timeToSleep = 1000;
             int chunkRepDegree = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo()).getActualRepDegree();
             int bytesRead = bis.read(chunkData);
             chunkData = Arrays.copyOf(chunkData, bytesRead);
@@ -252,7 +252,7 @@ public class CommandHandler extends Thread {
                     peer.getMDB().send(requestPacket);
 
                     //Await peer responses
-                    Thread.sleep(timeToSleep *(long) Math.pow(1, (double)resends));
+                    Thread.sleep(timeToSleep *(long) Math.pow(2, (double)resends));
                 }
 
             }
