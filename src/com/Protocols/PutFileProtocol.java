@@ -29,7 +29,9 @@ public class PutFileProtocol extends Thread {
     public void run(){
         //Get File to be saved.
         File f = peer.getLocalFile(fileName);
-
+        if(f == null){
+            return;
+        }
         try {
             BasicFileAttributes attributes = Files.readAttributes(f.toPath(),BasicFileAttributes.class);
             MyFiles.getInstance().addFileInfo(fileName,attributes);

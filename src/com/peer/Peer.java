@@ -3,9 +3,9 @@ import com.handlers.CommandHandler;
 import com.handlers.PackageHandler;
 import com.protocols.DeleteFileProtocol;
 import com.protocols.PutFileProtocol;
+import com.protocols.RemoveChunkProtocol;
 import com.protocols.RestoreFileProtocol;
-import com.utils.Constants;
-import com.utils.MyFiles;
+import com.utils.*;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -15,6 +15,10 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
@@ -25,6 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Peer implements PeerInterface {
 
 
+    private long totalSpace; // Total space that the peer may use;
     private int serverID;
     /**
      * The multicast port of the corresponding socket
@@ -116,6 +121,7 @@ public class Peer implements PeerInterface {
         this.mdbAddress = mdbAddress;
         this.mdrAddress = mdrAddress;
         this.myRestoreRequests = new LinkedBlockingQueue<>();
+        this.totalSpace = Constants.PEER_TOTAL_SPACE;
     }
 
     /**
@@ -269,9 +275,72 @@ public class Peer implements PeerInterface {
         return f;
     }
 
-    //TODO reclaim space protocol
     public void reclaimSpace(int totalSpace){
+        if(this.totalSpace >= totalSpace){
+            this.totalSpace -= totalSpace;
+        }
+        else{
+            this.totalSpace = 0;
+        }
+        long total = getTotalChunksSize();
+        System.out.println("NEW TOTAL SPACE: " + this.totalSpace);
+        System.out.println("CURRENT CHUNKS TOTAL SIZE: " +  total);
+        if(this.totalSpace < total){
+            ConcurrentHashMap<Chunk, ReplicationInfo> chunksInfo = ChunksInfo.getInstance().getFilesInfo();
+            Enumeration<Chunk> enumKey = chunksInfo.keys();
+            while(enumKey.hasMoreElements()) {
+                Chunk key = enumKey.nextElement();
+                ReplicationInfo val = chunksInfo.get(key);
+                if (val.getActualRepDegree() > val.getDesiredRepDegree()){
+                    File dir = new File(Constants.FILE_PATH + serverID,key.getFileId());
+                    File file = new File(dir,key.getChunkNo()+ Constants.FILE_EXTENSION);
+                    file.delete();
+                    new Thread(new RemoveChunkProtocol(key.getFileId(),key.getChunkNo(),this)).start();
+                }
+                if(this.totalSpace > getTotalChunksSize()){
+                    return;
+                }
+            }
+            enumKey = chunksInfo.keys();
+            if(this.totalSpace > getTotalChunksSize()){
+                while(enumKey.hasMoreElements()) {
+                    Chunk key = enumKey.nextElement();
+                    File dir = new File(Constants.FILE_PATH + serverID,key.getFileId());
+                    File file = new File(dir,key.getChunkNo()+ Constants.FILE_EXTENSION);
+                    file.delete();
+                    new Thread(new RemoveChunkProtocol(key.getFileId(),key.getChunkNo(),this)).start();
+                    if(this.totalSpace > getTotalChunksSize()){
+                        return;
+                    }
+                }
+            }
 
+        }
+
+    }
+
+    public long getTotalChunksSize(){
+        long totalSize = 0;
+        File serverDir = new File(Constants.FILE_PATH + serverID);
+        File[] dirs = serverDir.listFiles();
+        if(dirs != null){
+            for (File dir : dirs) {
+                if(dir.isDirectory() && !dir.getName().equals("restored")){
+                    File[] files = dir.listFiles();
+                    if(files != null){
+                        for (File f: files) {
+                            totalSize += f.length();
+                        }
+                    }
+                }
+            }
+        }
+
+        return totalSize;
+    }
+
+    public long getTotalFreeSpace() {
+        return totalSpace;
     }
 }
 

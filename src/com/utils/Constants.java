@@ -7,6 +7,7 @@ import java.security.MessageDigest;
  * Created by Luís on 17/03/2016.
  */
 public class Constants {
+    public static long PEER_TOTAL_SPACE = 100*1000000; //100 MB
     public static String PROTOCOL_VERSION = "1.0";
     public static int PACKET_BUFFER_SIZE = 65536; //1024 * 64 B
     public static String FILE_PATH = System.getProperty("user.dir") + File.separator + "Local Files" + File.separator; //TODO ISTO NAO FUNCA

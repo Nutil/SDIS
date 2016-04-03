@@ -14,14 +14,14 @@ public class ReplicationInfo implements Serializable{
         this.actualRepDegree = actualRepDegree;
     }
 
-    public int getDesiredRepDegree() {
+    public synchronized int getDesiredRepDegree() {
         return desiredRepDegree;
     }
 
-    public int getActualRepDegree() {
+    public synchronized int getActualRepDegree() {
         return actualRepDegree;
     }
-    public void setActualRepDegree(int actualRepDegree) {
+    public synchronized void setActualRepDegree(int actualRepDegree) {
         this.actualRepDegree = actualRepDegree;
     }
 

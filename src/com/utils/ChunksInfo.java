@@ -5,16 +5,17 @@ import com.handlers.CommandHandler;
 import java.io.*;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Diogo Guarda on 25/03/2016.
  */
 public class ChunksInfo implements Serializable{
     private static ChunksInfo info = null;
-    private Hashtable<String, ReplicationInfo> filesInfo;
+    private ConcurrentHashMap<Chunk, ReplicationInfo> filesInfo;
 
     private ChunksInfo(){
-        filesInfo = new Hashtable<String, ReplicationInfo>();
+        filesInfo = new ConcurrentHashMap<>();
     }
 
     public static ChunksInfo getInstance(){
@@ -64,18 +65,17 @@ public class ChunksInfo implements Serializable{
     }
 
     public void addInfo(String fileId, int chunkNo, int actualRepDegree, int desiredRepDegree){
-        ReplicationInfo info = new ReplicationInfo(desiredRepDegree, actualRepDegree);
-        if(filesInfo.get(fileId + "_" + chunkNo) == null) {
-            filesInfo.put(fileId + "_" + chunkNo, info);
-        }
-        else{
-            filesInfo.replace(fileId + "_" + chunkNo,info);
+        synchronized (filesInfo){
+            ReplicationInfo info = new ReplicationInfo(desiredRepDegree, actualRepDegree);
+            filesInfo.putIfAbsent(new Chunk(chunkNo,fileId), info);
         }
         saveClass();
     }
 
     public ReplicationInfo getInfo(String fileId, int chunkNo){
-        return filesInfo.get(fileId + "_" + chunkNo);
+        synchronized (filesInfo) {
+            return filesInfo.get(new Chunk(chunkNo,fileId));
+        }
     }
 
     /**
@@ -83,24 +83,40 @@ public class ChunksInfo implements Serializable{
      * @param fileID the fileID of the entries to be deleted
      */
     public void removeFileEntries(String fileID){
-        Iterator<String> it = filesInfo.keySet().iterator();
+        synchronized (filesInfo) {
+            Iterator<Chunk> it = filesInfo.keySet().iterator();
 
-        String chunkKey;
-        while(it.hasNext()){
-            chunkKey = it.next();
+            Chunk chunkKey;
+            while (it.hasNext()) {
+                chunkKey = it.next();
 
-            //Didn't match
-            if(!chunkKey.contains(fileID))
-                continue;
+                //Didn't match
+                if (!chunkKey.getFileId().equals(fileID))
+                    continue;
 
-            it.remove();
+                it.remove();
+            }
         }
         saveClass();
     }
 
     public void updateInfo(String fileId, int chunkNo) {
-        ReplicationInfo info = filesInfo.get(fileId+"_"+chunkNo);
-        info.setActualRepDegree(info.getActualRepDegree() - 1);
+        synchronized (filesInfo) {
+            ReplicationInfo info = filesInfo.get(new Chunk(chunkNo,fileId));
+            info.setActualRepDegree(info.getActualRepDegree() - 1);
+        }
         saveClass();
+    }
+
+    public synchronized void addActualDegree(String fileId, int chunkNo) {
+        synchronized (filesInfo) {
+            ReplicationInfo info = filesInfo.get(new Chunk(chunkNo,fileId));
+            info.setActualRepDegree(info.getActualRepDegree() + 1);
+        }
+        saveClass();
+    }
+
+    public ConcurrentHashMap<Chunk, ReplicationInfo> getFilesInfo() {
+        return filesInfo;
     }
 }

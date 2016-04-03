@@ -65,6 +65,9 @@ public class CommandHandler extends Thread {
                         break;
                     if(msg.getHeader().getSenderId() == peer.getServerID())
                         break;
+                    if(peer.getTotalFreeSpace() <= peer.getTotalChunksSize() + msg.getBody().length){
+                        break;
+                    }
                     handlePutchunk(msg);
                     break;
                 case "STORED":
@@ -73,8 +76,6 @@ public class CommandHandler extends Thread {
                     handleStored(msg);
                     break;
                 case "GETCHUNK":
-                    if(msg.getHeader().getSenderId() == peer.getServerID())
-                        break;
                     if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
                         break;
                     handleRestore(msg);
@@ -131,6 +132,8 @@ public class CommandHandler extends Thread {
         }
         chunk = new File(chunkDir,msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
         try {
+            ChunksInfo.getInstance().addInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),0,msg.getHeader().getReplicationDegree());
+            boolean existed = chunk.exists();
             chunk.createNewFile();
             FileOutputStream out = new FileOutputStream(chunk);
             out.write(msg.getBody());
@@ -143,18 +146,7 @@ public class CommandHandler extends Thread {
             Random rn = new Random();
             int randomDelay = rn.nextInt(Constants.delay + 1);
             Thread.sleep(randomDelay);
-            ReplicationInfo info = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
-            if(info != null){
-                if(info.getActualRepDegree() < info.getDesiredRepDegree()){
-                    chunk.delete();
-                }
-                else{
-                    socket.send(packet);
-                }
-            }
-            else{
-                socket.send(packet);
-            }
+            socket.send(packet);
         } catch (IOException e) {
             System.err.println("Error: Couldn't create chunk file");
         } catch (InterruptedException e) {
@@ -167,12 +159,12 @@ public class CommandHandler extends Thread {
      * @param msg the Stored message
      */
     public void handleStored(Message msg){
-        int actualRepDeg = 0;
-        ReplicationInfo repInfo = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
-        if(repInfo != null){
-            actualRepDeg = repInfo.getActualRepDegree();
+        if(peer.getServerID() != msg.getHeader().getSenderId()){
+            ReplicationInfo repInfo = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
+            if(repInfo != null){
+                ChunksInfo.getInstance().addActualDegree(msg.getHeader().getFileId(), msg.getHeader().getChunkNo());
+            }
         }
-        ChunksInfo.getInstance().addInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),actualRepDeg +1,msg.getHeader().getReplicationDegree());
     }
 
     /**
