@@ -5,6 +5,7 @@ import com.handlers.CommandHandler;
 import java.io.*;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Created by Diogo Guarda on 25/03/2016.

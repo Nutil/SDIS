@@ -68,6 +68,9 @@ public class CommandHandler extends Thread {
                     if(peer.getTotalFreeSpace() <= peer.getTotalChunksSize() + msg.getBody().length){
                         break;
                     }
+                    if(MyFiles.getInstance().exists(msg.getHeader().getFileId())){
+                        break;
+                    }
                     handlePutchunk(msg);
                     break;
                 case "STORED":
@@ -225,10 +228,13 @@ public class CommandHandler extends Thread {
 
     public void handleRemove(Message msg){
         File chunk = new File(Constants.FILE_PATH + peer.getServerID() + File.separator + msg.getHeader().getFileId()
-                , "" + msg.getHeader().getChunkNo());
+                , msg.getHeader().getChunkNo()+Constants.FILE_EXTENSION);
         if(!chunk.exists()){
             return;
         }
+        ReplicationInfo c = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
+        System.out.println(c.getActualRepDegree());
+        ChunksInfo.getInstance().updateInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
         try {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
             byte [] chunkData = new byte[Constants.chunkSize];
@@ -242,7 +248,7 @@ public class CommandHandler extends Thread {
             Thread.sleep(randomDelay);
 
             ReplicationInfo chunkInfo = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
-
+            System.out.println(chunkInfo.getActualRepDegree());
             if(chunkInfo.getActualRepDegree() < chunkInfo.getDesiredRepDegree()){
                 for(int resends = 0; resends < 5 && chunkRepDegree < chunkInfo.getDesiredRepDegree(); resends++) {
                     chunkRepDegree = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo()).getActualRepDegree();

@@ -90,4 +90,8 @@ public class MyFiles implements Serializable{
     public void removeInfo(String fileName) {
         metadata.remove(fileName);
     }
+
+    public boolean exists(String fileId) {
+        return metadata.contains(fileId);
+    }
 }
