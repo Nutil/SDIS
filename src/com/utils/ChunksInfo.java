@@ -66,7 +66,7 @@ public class ChunksInfo implements Serializable{
     public void addInfo(String fileId, int chunkNo, int actualRepDegree, int desiredRepDegree){
         synchronized (filesInfo){
             ReplicationInfo info = new ReplicationInfo(desiredRepDegree, actualRepDegree);
-            filesInfo.putIfAbsent(new Chunk(chunkNo,fileId), info);
+            filesInfo.put(new Chunk(chunkNo,fileId), info);
         }
         saveClass();
     }
