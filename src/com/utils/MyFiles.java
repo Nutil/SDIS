@@ -1,3 +1,7 @@
+package com.utils;
+
+import com.handlers.CommandHandler;
+
 import java.io.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,9 +27,6 @@ public class MyFiles implements Serializable{
         return filesInfo;
     }
 
-    public static void setMyFiles(MyFiles info){
-        filesInfo = info;
-    }
 
     public void addFileInfo(String filename,BasicFileAttributes attr){
         metadata.put(filename,attr);
@@ -58,7 +59,13 @@ public class MyFiles implements Serializable{
     private void saveClass() {
         try
         {
-            FileOutputStream fileOut = new FileOutputStream(Constants.FILE_PATH + CommandHandler.getPeer().getServerID() + File.separator + "myFiles.dat");
+            File dir = new File(Constants.FILE_PATH + CommandHandler.getPeer().getServerID());
+            dir.mkdir();
+            File file = new File(dir, "myFiles.dat");
+            if(!file.exists()){
+                file.createNewFile();
+            }
+            FileOutputStream fileOut = new FileOutputStream(file);
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(this);
             out.close();

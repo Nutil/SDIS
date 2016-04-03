@@ -1,3 +1,14 @@
+package com.peer;
+import com.handlers.CommandHandler;
+import com.handlers.PackageHandler;
+import com.protocols.DeleteFileProtocol;
+import com.protocols.PutFileProtocol;
+import com.protocols.RestoreFileProtocol;
+import com.utils.Constants;
+import com.utils.Header;
+import com.utils.Message;
+import com.utils.MyFiles;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -13,7 +24,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Represents a Server Peer. Contains main method
  */
 
-public class Peer implements PeerInterface{
+public class Peer implements PeerInterface {
 
 
     private int serverID;
@@ -211,7 +222,7 @@ public class Peer implements PeerInterface{
     }
 
     public void restoreFile(String fileName){
-        RestoreFileProtocol restore = new RestoreFileProtocol(this,fileName,MyFiles.getInstance().getFileId(fileName), MyFiles.getInstance().getNumberOfChunks(fileName));
+        RestoreFileProtocol restore = new RestoreFileProtocol(this,fileName, MyFiles.getInstance().getFileId(fileName), MyFiles.getInstance().getNumberOfChunks(fileName));
         myRestoreRequests.add(restore);
         new Thread(restore).start();
     }

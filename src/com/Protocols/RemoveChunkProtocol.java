@@ -1,3 +1,11 @@
+package com.protocols;
+
+import com.peer.Peer;
+import com.utils.ChunksInfo;
+import com.utils.Constants;
+import com.utils.Header;
+import com.utils.Message;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -20,10 +28,10 @@ public class RemoveChunkProtocol implements Runnable {
     @Override
     public void run() {
         File dir = new File(Constants.FILE_PATH + peer.getServerID(),fileId);
-        File file = new File(dir,chunkNo+Constants.FILE_EXTENSION);
+        File file = new File(dir,chunkNo+ Constants.FILE_EXTENSION);
         file.delete();
         ChunksInfo.getInstance().updateInfo(fileId,chunkNo);
-        Header header = new Header("REMOVED", Constants.PROTOCOL_VERSION,peer.getServerID(),fileId,chunkNo,Constants.REP_DEGREE_IGNORE);
+        Header header = new Header("REMOVED", Constants.PROTOCOL_VERSION,peer.getServerID(),fileId,chunkNo, Constants.REP_DEGREE_IGNORE);
         Message msg = new Message(header,null);
         DatagramPacket packet = new DatagramPacket(msg.getBytes(),msg.getBytes().length,peer.getMcAddress(), peer.getMcPort());
         try {

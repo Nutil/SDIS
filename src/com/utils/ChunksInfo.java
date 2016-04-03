@@ -1,3 +1,7 @@
+package com.utils;
+
+import com.handlers.CommandHandler;
+
 import java.io.*;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -7,10 +11,10 @@ import java.util.Iterator;
  */
 public class ChunksInfo implements Serializable{
     private static ChunksInfo info = null;
-    private Hashtable<String,ReplicationInfo> filesInfo;
+    private Hashtable<String, ReplicationInfo> filesInfo;
 
     private ChunksInfo(){
-        filesInfo = new Hashtable<String,ReplicationInfo>();
+        filesInfo = new Hashtable<String, ReplicationInfo>();
     }
 
     public static ChunksInfo getInstance(){
@@ -42,14 +46,20 @@ public class ChunksInfo implements Serializable{
     private void saveClass() {
         try
         {
-            FileOutputStream fileOut = new FileOutputStream(Constants.FILE_PATH + CommandHandler.getPeer().getServerID() + File.separator + "chunksInfo.dat");
+            File dir = new File(Constants.FILE_PATH + CommandHandler.getPeer().getServerID());
+            dir.mkdir();
+            File file = new File(dir,"chunksInfo.dat");
+            if(!file.exists()){
+                file.createNewFile();
+            }
+            FileOutputStream fileOut = new FileOutputStream(file);
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(this);
             out.close();
             fileOut.close();
         }catch(IOException e)
         {
-            e.printStackTrace();
+
         }
     }
 

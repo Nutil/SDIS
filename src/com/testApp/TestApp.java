@@ -1,4 +1,7 @@
-import java.math.BigDecimal;
+package com.testApp;
+
+import com.peer.PeerInterface;
+
 import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;

@@ -1,8 +1,14 @@
+package com.protocols;
+
+import com.peer.Peer;
+import com.utils.Constants;
+import com.utils.Header;
+import com.utils.Message;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.nio.file.Files;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -68,7 +74,7 @@ public class RestoreFileProtocol implements Runnable{
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    Header requestHeader = new Header("GETCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(),fileId, finalChunkNo,Constants.REP_DEGREE_IGNORE);
+                    Header requestHeader = new Header("GETCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(),fileId, finalChunkNo, Constants.REP_DEGREE_IGNORE);
                     Message request = new Message(requestHeader,null);
                     DatagramPacket packet = new DatagramPacket(request.getBytes(),request.getBytes().length,peer.getMcAddress(),peer.getMcPort());
                     try {

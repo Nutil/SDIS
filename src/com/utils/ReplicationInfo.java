@@ -1,3 +1,5 @@
+package com.utils;
+
 import java.io.Serializable;
 
 /**
