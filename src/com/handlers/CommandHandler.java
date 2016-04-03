@@ -136,7 +136,6 @@ public class CommandHandler extends Thread {
         chunk = new File(chunkDir,msg.getHeader().getChunkNo() + Constants.FILE_EXTENSION);
         try {
             ChunksInfo.getInstance().addInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),0,msg.getHeader().getReplicationDegree());
-            boolean existed = chunk.exists();
             chunk.createNewFile();
             FileOutputStream out = new FileOutputStream(chunk);
             out.write(msg.getBody());
@@ -149,7 +148,15 @@ public class CommandHandler extends Thread {
             Random rn = new Random();
             int randomDelay = rn.nextInt(Constants.delay + 1);
             Thread.sleep(randomDelay);
-            socket.send(packet);
+            ReplicationInfo rep =ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
+            if(rep != null){
+                if(rep.getActualRepDegree() >= rep.getDesiredRepDegree()){
+                    chunk.delete();
+                }
+                else{
+                    socket.send(packet);
+                }
+            }
         } catch (IOException e) {
             System.err.println("Error: Couldn't create chunk file");
         } catch (InterruptedException e) {

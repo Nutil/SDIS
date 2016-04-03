@@ -64,8 +64,11 @@ public class ChunksInfo implements Serializable{
         }
     }
 
-    public void addInfo(String fileId, int chunkNo, int actualRepDegree, int desiredRepDegree){
+    public synchronized void addInfo(String fileId, int chunkNo, int actualRepDegree, int desiredRepDegree){
         synchronized (filesInfo){
+            if(filesInfo.contains(new Chunk(chunkNo,fileId))){
+                return;
+            }
             ReplicationInfo info = new ReplicationInfo(desiredRepDegree, actualRepDegree);
             filesInfo.put(new Chunk(chunkNo,fileId), info);
         }
@@ -82,7 +85,7 @@ public class ChunksInfo implements Serializable{
      * Removes all table chunks belonging to the specified file from the table
      * @param fileID the fileID of the entries to be deleted
      */
-    public void removeFileEntries(String fileID){
+    public synchronized void removeFileEntries(String fileID){
         synchronized (filesInfo) {
             Iterator<Chunk> it = filesInfo.keySet().iterator();
 
@@ -100,7 +103,7 @@ public class ChunksInfo implements Serializable{
         saveClass();
     }
 
-    public void updateInfo(String fileId, int chunkNo) {
+    public synchronized void updateInfo(String fileId, int chunkNo) {
         synchronized (filesInfo) {
             ReplicationInfo info = filesInfo.get(new Chunk(chunkNo,fileId));
             info.setActualRepDegree(info.getActualRepDegree() - 1);
