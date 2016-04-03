@@ -57,21 +57,25 @@ public class Peer implements PeerInterface {
      */
     public static void main(String[] args) {
 
+        if(args.length != 7){
+            System.err.println("Usage: <serverID> <mcIP> <mcPort> <mdbIP> <mdbPort> <mdrIP> <mdrPort>");
+            System.exit(-1);
+        }
 
         int serverID = Integer.parseInt(args[0]);
         String mcInfo = args[1];
-        String mdbInfo = args[2];
-        String mdrInfo = args[3];
-        int mcPort = 8881;
-        int mdbPort = 8882;
-        int mdrPort = 8883;
+        String mdbInfo = args[3];
+        String mdrInfo = args[5];
+        int mcPort = Integer.parseInt(args[2]);
+        int mdbPort = Integer.parseInt(args[4]);
+        int mdrPort = Integer.parseInt(args[6]);
         InetAddress mcAddress = null;
         InetAddress mdbAddress = null;
         InetAddress mdrAddress = null;
         try {
-            mcAddress = InetAddress.getByName("227.0.1.1");
-            mdbAddress = InetAddress.getByName("227.0.2.2");
-            mdrAddress = InetAddress.getByName("227.0.3.3");
+            mcAddress = InetAddress.getByName(mcInfo);
+            mdbAddress = InetAddress.getByName(mdbInfo);
+            mdrAddress = InetAddress.getByName(mdrInfo);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
