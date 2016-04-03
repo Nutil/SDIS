@@ -22,7 +22,7 @@ public class RemoveChunkProtocol implements Runnable {
         File dir = new File(Constants.FILE_PATH + peer.getServerID(),fileId);
         File file = new File(dir,chunkNo+Constants.FILE_EXTENSION);
         file.delete();
-        FileInfo.getInstance().updateInfo(fileId,chunkNo);
+        ChunksInfo.getInstance().updateInfo(fileId,chunkNo);
         Header header = new Header("REMOVED", Constants.PROTOCOL_VERSION,peer.getServerID(),fileId,chunkNo,Constants.REP_DEGREE_IGNORE);
         Message msg = new Message(header,null);
         DatagramPacket packet = new DatagramPacket(msg.getBytes(),msg.getBytes().length,peer.getMcAddress(), peer.getMcPort());

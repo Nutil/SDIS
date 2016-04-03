@@ -1,8 +1,5 @@
 import java.io.File;
-import java.io.IOException;
 import java.net.DatagramPacket;
-import java.util.Hashtable;
-import java.util.Iterator;
 
 /**
  * Protocol to delete a file across the backup system
@@ -21,7 +18,7 @@ public class DeleteFileProtocol extends Thread {
 
         String hashedFileName = MyFiles.getInstance().getFileId(fileName);
 
-        FileInfo filesTable = FileInfo.getInstance();
+        ChunksInfo filesTable = ChunksInfo.getInstance();
 
         filesTable.removeFileEntries(hashedFileName);
         MyFiles.getInstance().removeInfo(fileName);

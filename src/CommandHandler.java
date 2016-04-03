@@ -2,7 +2,6 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -148,11 +147,11 @@ public class CommandHandler extends Thread {
      */
     public void handleStored(Message msg){
         int actualRepDeg = 0;
-        ReplicationInfo repInfo = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
+        ReplicationInfo repInfo = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
         if(repInfo != null){
             actualRepDeg = repInfo.getActualRepDegree();
         }
-        FileInfo.getInstance().addInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),actualRepDeg +1,msg.getHeader().getReplicationDegree());
+        ChunksInfo.getInstance().addInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(),actualRepDeg +1,msg.getHeader().getReplicationDegree());
     }
 
     /**
@@ -192,7 +191,7 @@ public class CommandHandler extends Thread {
      * @param msg the Delete message
      */
     public void handleDelete(Message msg){
-        FileInfo theInfo = FileInfo.getInstance();
+        ChunksInfo theInfo = ChunksInfo.getInstance();
         theInfo.removeFileEntries(msg.getHeader().getFileId());
 
         File f = new File(Constants.FILE_PATH + peer.getServerID(),msg.getHeader().getFileId());
@@ -221,7 +220,7 @@ public class CommandHandler extends Thread {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(chunk));
             byte [] chunkData = new byte[Constants.chunkSize];
             int timeToSleep = 100;
-            int chunkRepDegree = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo()).getActualRepDegree();
+            int chunkRepDegree = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo()).getActualRepDegree();
             int bytesRead = bis.read(chunkData);
             chunkData = Arrays.copyOf(chunkData, bytesRead);
 
@@ -229,11 +228,11 @@ public class CommandHandler extends Thread {
             int randomDelay = rn.nextInt(Constants.delay + 1);
             Thread.sleep(randomDelay);
 
-            ReplicationInfo chunkInfo = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
+            ReplicationInfo chunkInfo = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo());
 
             if(chunkInfo.getActualRepDegree() < chunkInfo.getDesiredRepDegree()){
                 for(int resends = 0; resends < 5 && chunkRepDegree < chunkInfo.getDesiredRepDegree(); resends++) {
-                    chunkRepDegree = FileInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo()).getActualRepDegree();
+                    chunkRepDegree = ChunksInfo.getInstance().getInfo(msg.getHeader().getFileId(),msg.getHeader().getChunkNo()).getActualRepDegree();
                     Header messageHeader = new Header("PUTCHUNK", Constants.PROTOCOL_VERSION, peer.getServerID(), msg.getHeader().getFileId(), msg.getHeader().getChunkNo(), chunkInfo.getDesiredRepDegree());
                     Message response = new Message(messageHeader, chunkData);
                     DatagramPacket requestPacket = new DatagramPacket(response.getBytes(), response.getBytes().length, peer.getMdbAddress(), peer.getMdbPort());
@@ -247,5 +246,9 @@ public class CommandHandler extends Thread {
         } catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static Peer getPeer() {
+        return peer;
     }
 }

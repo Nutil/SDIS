@@ -42,7 +42,7 @@ public class PutFileProtocol extends Thread {
             int chunkNumber = 0;
             int bytesRead;
             while((bytesRead = bis.read(chunk)) > -1 ) {
-                FileInfo.getInstance().addInfo(hashedFileName,chunkNumber,0,repDegree);
+                ChunksInfo.getInstance().addInfo(hashedFileName,chunkNumber,0,repDegree);
                 chunk = Arrays.copyOf(chunk,bytesRead);
                 final int finalChunkNumber = chunkNumber;
                 final byte[] finalChunk = chunk;
@@ -66,7 +66,7 @@ public class PutFileProtocol extends Thread {
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                            chunkRepDegree = FileInfo.getInstance().getInfo(hashedFileName, finalChunkNumber).getActualRepDegree();
+                            chunkRepDegree = ChunksInfo.getInstance().getInfo(hashedFileName, finalChunkNumber).getActualRepDegree();
                         }
                     }
                 }).start();

@@ -1,24 +1,56 @@
-import java.util.HashMap;
+import java.io.*;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Created by Diogo Guarda on 25/03/2016.
  */
-public class FileInfo {
-    private static FileInfo info = null;
+public class ChunksInfo implements Serializable{
+    private static ChunksInfo info = null;
     private Hashtable<String,ReplicationInfo> filesInfo;
 
-    private FileInfo(){
+    private ChunksInfo(){
         filesInfo = new Hashtable<String,ReplicationInfo>();
     }
 
-    public static FileInfo getInstance(){
+    public static ChunksInfo getInstance(){
         if(info == null){
-            info = new FileInfo();
+            if(!loadClass()){
+                info = new ChunksInfo();
+            }
         }
         return info;
+    }
+    private static boolean loadClass(){
+        try
+        {
+            FileInputStream fileIn = new FileInputStream(Constants.FILE_PATH + CommandHandler.getPeer().getServerID() + File.separator + "chunksInfo.dat");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            info = (ChunksInfo) in.readObject();
+            in.close();
+            fileIn.close();
+        }catch(IOException i)
+        {
+            return false;
+        }catch(ClassNotFoundException c)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    private void saveClass() {
+        try
+        {
+            FileOutputStream fileOut = new FileOutputStream(Constants.FILE_PATH + CommandHandler.getPeer().getServerID() + File.separator + "chunksInfo.dat");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(this);
+            out.close();
+            fileOut.close();
+        }catch(IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void addInfo(String fileId, int chunkNo, int actualRepDegree, int desiredRepDegree){
@@ -29,7 +61,7 @@ public class FileInfo {
         else{
             filesInfo.replace(fileId + "_" + chunkNo,info);
         }
-        //TO-DO Save info in non-volatile memory
+        saveClass();
     }
 
     public ReplicationInfo getInfo(String fileId, int chunkNo){
@@ -53,12 +85,12 @@ public class FileInfo {
 
             it.remove();
         }
-
-        System.out.println("Finished removing table entries.");
+        saveClass();
     }
 
     public void updateInfo(String fileId, int chunkNo) {
         ReplicationInfo info = filesInfo.get(fileId+"_"+chunkNo);
         info.setActualRepDegree(info.getActualRepDegree() - 1);
+        saveClass();
     }
 }

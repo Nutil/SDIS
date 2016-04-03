@@ -1,7 +1,9 @@
+import java.io.Serializable;
+
 /**
  * Created by Diogo Guarda on 25/03/2016.
  */
-public class ReplicationInfo {
+public class ReplicationInfo implements Serializable{
     private int desiredRepDegree;
     private int actualRepDegree;
 

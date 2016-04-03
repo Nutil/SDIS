@@ -1,10 +1,11 @@
+import java.io.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Diogo Guarda on 02/04/2016.
  */
-public class MyFiles {
+public class MyFiles implements Serializable{
 
     private static MyFiles filesInfo = null;
     private ConcurrentHashMap<String, BasicFileAttributes> metadata;
@@ -15,13 +16,57 @@ public class MyFiles {
 
     public static MyFiles getInstance(){
         if(filesInfo == null){
-            filesInfo = new MyFiles();
+            if(!loadClass()){
+                filesInfo = new MyFiles();
+            }
         }
         return filesInfo;
     }
 
+    public static void setMyFiles(MyFiles info){
+        filesInfo = info;
+    }
+
     public void addFileInfo(String filename,BasicFileAttributes attr){
         metadata.put(filename,attr);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                saveClass();
+            }
+        }).start();
+    }
+
+    private static boolean loadClass(){
+        try
+        {
+            FileInputStream fileIn = new FileInputStream(Constants.FILE_PATH + CommandHandler.getPeer().getServerID() + File.separator + "myFiles.dat");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            filesInfo = (MyFiles) in.readObject();
+            in.close();
+            fileIn.close();
+        }catch(IOException i)
+        {
+            return false;
+        }catch(ClassNotFoundException c)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    private void saveClass() {
+        try
+        {
+            FileOutputStream fileOut = new FileOutputStream(Constants.FILE_PATH + CommandHandler.getPeer().getServerID() + File.separator + "myFiles.dat");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(this);
+            out.close();
+            fileOut.close();
+        }catch(IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public String getFileId(String filename){
