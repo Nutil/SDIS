@@ -2,7 +2,6 @@ package com.testApp;
 
 import com.peer.PeerInterface;
 
-import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -31,6 +30,7 @@ public class TestApp {
                     if (args.length == 4) {
                         repDegree = Integer.parseInt(args[3]);
                     } else {
+                        System.err.println("Usage: java TestApp <peer_ap> BACKUP <filePath> <repDegree>");
                         return;
                     }
                     peer.putFile(filename, repDegree);
@@ -48,8 +48,6 @@ public class TestApp {
                 default:
                     System.err.println("Unkown subprotocol!");
             }
-        } catch (AccessException e1) {
-            e1.printStackTrace();
         } catch (RemoteException e1) {
             System.err.println("Could not access to RMI register");
         } catch (NotBoundException e1) {

@@ -49,57 +49,62 @@ public class CommandHandler extends Thread {
                     }
                 }).start();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                return;
             }
         }
     }
 
     private String handleCommand(byte[] commandPacket){
-        Message msg = new Message(commandPacket);
-        String requestName = msg.getHeader().getFileId() + "_" + msg.getHeader().getChunkNo();
-        System.out.println("MESSAGE: " + msg.getHeader().toString());
-        switch (msg.getHeader().getMessageType()){
-            case "PUTCHUNK":
-                if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
+        try{
+            Message msg = new Message(commandPacket);
+            String requestName = msg.getHeader().getFileId() + "_" + msg.getHeader().getChunkNo();
+            System.out.println("MESSAGE: " + msg.getHeader().toString());
+            switch (msg.getHeader().getMessageType()){
+                case "PUTCHUNK":
+                    if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
+                        break;
+                    if(msg.getHeader().getSenderId() == peer.getServerID())
+                        break;
+                    handlePutchunk(msg);
                     break;
-                if(msg.getHeader().getSenderId() == peer.getServerID())
+                case "STORED":
+                    if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
+                        break;
+                    handleStored(msg);
                     break;
-                handlePutchunk(msg);
-                break;
-            case "STORED":
-                if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
+                case "GETCHUNK":
+                    if(msg.getHeader().getSenderId() == peer.getServerID())
+                        break;
+                    if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
+                        break;
+                    handleRestore(msg);
                     break;
-                handleStored(msg);
-                break;
-            case "GETCHUNK":
-                if(msg.getHeader().getSenderId() == peer.getServerID())
+                case "CHUNK":
+                    restoreRequests.remove(requestName);
+                    peer.receivedChunk(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(), msg.getBody());
                     break;
-                if(!msg.getHeader().getVersion().equals(Constants.PROTOCOL_VERSION))
-                    break;
-                handleRestore(msg);
-                break;
-            case "CHUNK":
-                restoreRequests.remove(requestName);
-                peer.receivedChunk(msg.getHeader().getFileId(),msg.getHeader().getChunkNo(), msg.getBody());
-                break;
-            case "DELETE":
-                if(msg.getHeader().getSenderId() == peer.getServerID())
-                    break;
+                case "DELETE":
+                    if(msg.getHeader().getSenderId() == peer.getServerID())
+                        break;
 
-                handleDelete(msg);
-                break;
-            case "REMOVED":
-                if(msg.getHeader().getSenderId() == peer.getServerID())
+                    handleDelete(msg);
                     break;
+                case "REMOVED":
+                    if(msg.getHeader().getSenderId() == peer.getServerID())
+                        break;
 
-                handleRemove(msg);
-                break;
-            default:
-                System.out.println("Unrecognized command. Disregarding");
-                break;
+                    handleRemove(msg);
+                    break;
+                default:
+                    System.out.println("Unrecognized command. Disregarding");
+                    break;
+            }
+
+            return msg.getHeader().getMessageType();
+        } catch (IllegalArgumentException e){
+            System.err.println(e.getMessage());
         }
-
-        return msg.getHeader().getMessageType();
+        return "ERROR";
     }
 
     /**
@@ -109,7 +114,7 @@ public class CommandHandler extends Thread {
         try {
             commands.put(command);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            return;
         }
     }
 
@@ -140,9 +145,9 @@ public class CommandHandler extends Thread {
             Thread.sleep(randomDelay);
             socket.send(packet);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error: Couldn't create chunk file");
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            return;
         }
     }
 
@@ -185,7 +190,7 @@ public class CommandHandler extends Thread {
                     peer.getMDR().send(chunkPacket);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println("Couldn't send CHUNK message");
             }
         }
         restoreRequests.add(requestName);
@@ -249,7 +254,7 @@ public class CommandHandler extends Thread {
 
             }
         } catch(Exception e) {
-            e.printStackTrace();
+            System.err.println("Error: Couldn't send PUTCHUNK response to REMOVE message");
         }
     }
 

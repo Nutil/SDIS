@@ -36,7 +36,7 @@ public class DeleteFileProtocol extends Thread {
         try {
             peer.getMC().send(requestPacket);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error: Delete message not sent");
         }
 
     }

@@ -38,7 +38,7 @@ public class PackageHandler extends Thread {
                 byte[] dataRead = Arrays.copyOf(receptionPacket.getData(),receptionPacket.getLength());
                 commandHandler.addCommand(dataRead);
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println("Error: Message dropped");
             }
         }
     }

@@ -14,7 +14,7 @@ public class Message {
     private Header header;
     private byte[] body;
 
-    public Message(byte[] bytesReceived){
+    public Message(byte[] bytesReceived) throws IllegalArgumentException{
 
         int i = 0;
         while(i < bytesReceived.length - 3){
@@ -49,7 +49,7 @@ public class Message {
                 outputStream.write(body);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error: Could not get message bytes");
         }
         return outputStream.toByteArray();
     }

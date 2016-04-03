@@ -72,7 +72,7 @@ public class MyFiles implements Serializable{
             fileOut.close();
         }catch(IOException e)
         {
-            e.printStackTrace();
+            return;
         }
     }
 

@@ -5,8 +5,6 @@ import com.protocols.DeleteFileProtocol;
 import com.protocols.PutFileProtocol;
 import com.protocols.RestoreFileProtocol;
 import com.utils.Constants;
-import com.utils.Header;
-import com.utils.Message;
 import com.utils.MyFiles;
 
 import java.io.*;
@@ -77,7 +75,8 @@ public class Peer implements PeerInterface {
             mdbAddress = InetAddress.getByName(mdbInfo);
             mdrAddress = InetAddress.getByName(mdrInfo);
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.exit(-1);
         }
 
         Peer testPeer = new Peer(serverID, mcPort, mdbPort, mdrPort, mcAddress, mdbAddress, mdrAddress);
@@ -87,7 +86,7 @@ public class Peer implements PeerInterface {
             registry.rebind("Peer",stub);
         } catch (RemoteException e) {
             System.err.println("Cannot export RMI Object");
-            e.printStackTrace();
+            System.exit(-1);
         }
 
         CommandHandler.getInstance(testPeer);
@@ -137,7 +136,8 @@ public class Peer implements PeerInterface {
             MDB.joinGroup(mdbAddress);
             MDR.joinGroup(mdrAddress);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Cannot join to all multicast channels");
+            System.exit(-1);
         }
 
         System.out.println("Succesfully joined groups");
@@ -252,24 +252,6 @@ public class Peer implements PeerInterface {
         DeleteFileProtocol fileDeleter = new DeleteFileProtocol(this, fileName);
         fileDeleter.start();
     }
-    /**
-     * Sends to the MC channel GETCHUNK message
-     * @param fileId specifies the id of the file
-     * @param chunkNo specifies the number of the chunk being retrieved
-     */
-    public void getChunk(String fileId, int chunkNo){
-        Header header = new Header("GETCHUNK","1.0",this.serverID,fileId,chunkNo,-1);
-        Message message = new Message(header, null);
-        DatagramPacket requestPacket = new DatagramPacket(message.getBytes(),message.getBytes().length, mcAddress, mcPort);
-        try {
-            System.out.println("Sending getchunk message");
-            MC.send(requestPacket);
-            System.out.println("Getchunk successfully sent");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     /**
      * Get a local file. Makes sure it exists and is not a directory

@@ -37,7 +37,7 @@ public class RemoveChunkProtocol implements Runnable {
         try {
             peer.getMC().send(packet);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error: Could not send REMOVED MESSAGE");
         }
 
     }

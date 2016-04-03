@@ -67,9 +67,9 @@ public class PutFileProtocol extends Thread {
                                 peer.getMDB().send(requestPacket);
                                 Thread.sleep(timeToSleep *(long) Math.pow(2, (double)tries));
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                return;
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                System.err.println("Error: Couldn't send PUTCHUN message");
                             }
                             chunkRepDegree = ChunksInfo.getInstance().getInfo(hashedFileName, finalChunkNumber).getActualRepDegree();
                         }
@@ -79,7 +79,7 @@ public class PutFileProtocol extends Thread {
                 chunk = new byte[Constants.chunkSize];
             }
         } catch(Exception e) {
-            e.printStackTrace();
+            System.err.println("Error: Couldn't send PUTCHUN message");
         }
     }
 }
